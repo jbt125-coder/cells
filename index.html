@@ -8,99 +8,87 @@
         * { box-sizing: border-box; }
         body { margin: 0; overflow: hidden; background: #cfd8dc; font-family: 'Segoe UI', sans-serif; touch-action: none; position: fixed; width: 100%; height: 100%; }
         canvas { display: block; }
- 
-        #ui { position: fixed; top: 15px; left: 15px; pointer-events: none; z-index: 10; display: flex; flex-direction: column; gap: 5px; }
-        .score-box { background: rgba(255,255,255,0.9); padding: 8px 15px; border-radius: 15px; border: 2px solid #37474f; font-weight: bold; font-size: 14px; }
-        #sprint-status { background: rgba(0,229,255,0.2); color: #00838f; border-color: #00e5ff; display: none; }
-        .exhausted { background: rgba(255,87,34,0.2) !important; color: #d84315 !important; border-color: #ff5722 !important; }
-        #shield-bar { background: rgba(100,180,255,0.25); color: #1565c0; border-color: #42a5f5; display: none; }
- 
-        #leaderboard { position: fixed; top: 15px; right: 15px; background: rgba(0,0,0,0.6); color: white; padding: 12px; border-radius: 10px; min-width: 140px; font-size: 12px; z-index: 10; pointer-events: none; }
-        #minimap { position: fixed; bottom: 20px; right: 20px; width: 130px; height: 130px; background: rgba(0,0,0,0.4); border: 2px solid #fff; border-radius: 5px; z-index: 5; }
- 
-        #overlay { position: fixed; inset: 0; background: rgba(38,50,56,0.98); display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; z-index: 100; text-align: center; padding: 20px; }
-        #startBtn { padding: 15px 50px; font-size: 20px; background: #0288d1; border: none; color: white; border-radius: 40px; font-weight: bold; cursor: pointer; margin-top: 20px; }
-        #death-screen { position: fixed; inset: 0; background: rgba(180,0,0,0.92); display: none; flex-direction: column; align-items: center; justify-content: center; color: white; z-index: 100; text-align: center; padding: 20px; }
-        #death-screen h1 { font-size: 64px; margin: 0; }
-        #respawnBtn { padding: 15px 50px; font-size: 20px; background: white; border: none; color: #c00; border-radius: 40px; font-weight: bold; cursor: pointer; margin-top: 20px; }
- 
-        /* Victory Screen */
-        #victory-screen { position: fixed; inset: 0; background: linear-gradient(135deg, rgba(0,60,20,0.97), rgba(0,100,60,0.97)); display: none; flex-direction: column; align-items: center; justify-content: center; color: white; z-index: 100; text-align: center; padding: 20px; }
-        #victory-screen h1 { font-size: 60px; margin: 0 0 10px; }
-        .victory-stat { font-size: 22px; margin: 8px 0; color: #a5d6a7; }
-        .victory-stat span { color: #ffffff; font-weight: bold; }
-        #victoryBtn { padding: 15px 50px; font-size: 20px; background: #00e676; border: none; color: #003300; border-radius: 40px; font-weight: bold; cursor: pointer; margin-top: 24px; }
- 
-        /* Evo Banner */
-        #evo-banner { position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%) scale(0); z-index: 200; pointer-events: none; opacity: 0; transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1), opacity 0.4s; }
-        #evo-banner.show { transform: translate(-50%,-50%) scale(1); opacity: 1; }
-        #evo-banner.hide { transform: translate(-50%,-50%) scale(0.7); opacity: 0; }
-        #evo-inner { background: rgba(5,15,30,0.97); border: 3px solid #00e5ff; border-radius: 22px; padding: 26px 44px; color: white; box-shadow: 0 0 50px #00e5ff66; text-align: center; }
-        #evo-inner h2 { margin: 0 0 8px; font-size: 30px; color: #00e5ff; letter-spacing: 1px; }
-        #evo-inner p { margin: 0; font-size: 15px; color: #90a4ae; }
- 
-        /* Eat Quote Popup */
-        #eat-popup { position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%) scale(0); z-index: 300; pointer-events: none; opacity: 0; transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1), opacity 0.3s; max-width: 340px; width: 90%; }
-        #eat-popup.show { transform: translate(-50%,-50%) scale(1); opacity: 1; }
-        #eat-popup.hide { transform: translate(-50%,-50%) scale(0.8); opacity: 0; }
-        #eat-popup-inner { background: rgba(10,10,10,0.95); border: 3px solid #ff9800; border-radius: 20px; padding: 20px 28px; color: white; box-shadow: 0 0 40px rgba(255,152,0,0.5); text-align: center; }
-        #eat-popup-inner .eat-title { font-size: 20px; font-weight: bold; color: #ff9800; margin-bottom: 8px; }
-        #eat-popup-inner .eat-quote { font-size: 14px; color: #ccc; font-style: italic; }
- 
-        /* Touch Controls */
-        #touch-controls { display: none; }
-        #joystick-zone { position: fixed; bottom: 20px; left: 20px; width: 160px; height: 160px; pointer-events: all; z-index: 20; }
-        #joystick-base { width: 160px; height: 160px; background: rgba(255,255,255,0.12); border: 3px solid rgba(255,255,255,0.35); border-radius: 50%; position: absolute; }
-        #joystick-knob { width: 70px; height: 70px; background: rgba(2,136,209,0.8); border: 3px solid #fff; border-radius: 50%; position: absolute; top: 45px; left: 45px; }
-        #action-buttons { position: fixed; bottom: 30px; right: 20px; display: flex; flex-direction: column; gap: 14px; align-items: flex-end; pointer-events: all; z-index: 20; }
-        .action-btn { width: 72px; height: 72px; border-radius: 50%; border: 3px solid rgba(255,255,255,0.85); font-weight: bold; font-size: 12px; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; text-align: center; user-select: none; -webkit-user-select: none; transition: transform 0.1s; }
-        .action-btn:active { transform: scale(0.88); }
-        #btn-sprint { background: rgba(0,200,255,0.65); }
-        #btn-split  { background: rgba(100,200,100,0.65); }
- 
-        /* Mobile overrides */
-        @media (max-width: 600px) {
-            #ui { display: none; }
-            #minimap { top: 15px; left: 15px; bottom: auto; right: auto; width: 110px; height: 110px; }
-            #leaderboard { top: 15px; right: 15px; min-width: 130px; }
-            #mobile-mass { display: block; }
-        }
-        #mobile-mass { display: none; position: fixed; top: 15px; right: 15px; background: rgba(255,255,255,0.92); padding: 7px 14px; border-radius: 12px; border: 2px solid #37474f; font-weight: bold; font-size: 13px; z-index: 10; pointer-events: none; color: #263238; }
-    </style>
+
+    #ui { position: fixed; top: 15px; left: 15px; pointer-events: none; z-index: 10; display: flex; flex-direction: column; gap: 5px; }
+    .score-box { background: rgba(255,255,255,0.9); padding: 8px 15px; border-radius: 15px; border: 2px solid #37474f; font-weight: bold; font-size: 14px; }
+    #sprint-status { background: rgba(0,229,255,0.2); color: #00838f; border-color: #00e5ff; display: none; }
+    .exhausted { background: rgba(255,87,34,0.2) !important; color: #d84315 !important; border-color: #ff5722 !important; }
+    #shield-bar { background: rgba(100,180,255,0.25); color: #1565c0; border-color: #42a5f5; display: none; }
+
+    #leaderboard { position: fixed; top: 15px; right: 15px; background: rgba(0,0,0,0.6); color: white; padding: 12px; border-radius: 10px; min-width: 140px; font-size: 12px; z-index: 10; pointer-events: none; }
+    #minimap { position: fixed; bottom: 20px; right: 20px; width: 130px; height: 130px; background: rgba(0,0,0,0.4); border: 2px solid #fff; border-radius: 5px; z-index: 5; }
+
+    #overlay { position: fixed; inset: 0; background: rgba(38,50,56,0.98); display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; z-index: 100; text-align: center; padding: 20px; }
+    #startBtn { padding: 15px 50px; font-size: 20px; background: #0288d1; border: none; color: white; border-radius: 40px; font-weight: bold; cursor: pointer; margin-top: 20px; }
+    #death-screen { position: fixed; inset: 0; background: rgba(180,0,0,0.92); display: none; flex-direction: column; align-items: center; justify-content: center; color: white; z-index: 100; text-align: center; padding: 20px; }
+    #death-screen h1 { font-size: 64px; margin: 0; }
+    #respawnBtn { padding: 15px 50px; font-size: 20px; background: white; border: none; color: #c00; border-radius: 40px; font-weight: bold; cursor: pointer; margin-top: 20px; }
+
+    /* Victory Screen */
+    #victory-screen { position: fixed; inset: 0; background: linear-gradient(135deg, rgba(0,60,20,0.97), rgba(0,100,60,0.97)); display: none; flex-direction: column; align-items: center; justify-content: center; color: white; z-index: 100; text-align: center; padding: 20px; }
+    #victory-screen h1 { font-size: 60px; margin: 0 0 10px; }
+    .victory-stat { font-size: 22px; margin: 8px 0; color: #a5d6a7; }
+    .victory-stat span { color: #ffffff; font-weight: bold; }
+    #victoryBtn { padding: 15px 50px; font-size: 20px; background: #00e676; border: none; color: #003300; border-radius: 40px; font-weight: bold; cursor: pointer; margin-top: 24px; }
+
+    /* Evo Banner */
+    #evo-banner { position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%) scale(0); z-index: 200; pointer-events: none; opacity: 0; transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1), opacity 0.4s; }
+    #evo-banner.show { transform: translate(-50%,-50%) scale(1); opacity: 1; }
+    #evo-banner.hide { transform: translate(-50%,-50%) scale(0.7); opacity: 0; }
+    #evo-inner { background: rgba(5,15,30,0.97); border: 3px solid #00e5ff; border-radius: 22px; padding: 26px 44px; color: white; box-shadow: 0 0 50px #00e5ff66; text-align: center; }
+    #evo-inner h2 { margin: 0 0 8px; font-size: 30px; color: #00e5ff; letter-spacing: 1px; }
+    #evo-inner p { margin: 0; font-size: 15px; color: #90a4ae; }
+
+    /* Eat Quote Popup */
+    #eat-popup { position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%) scale(0); z-index: 300; pointer-events: none; opacity: 0; transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1), opacity 0.3s; max-width: 340px; width: 90%; }
+    #eat-popup.show { transform: translate(-50%,-50%) scale(1); opacity: 1; }
+    #eat-popup.hide { transform: translate(-50%,-50%) scale(0.8); opacity: 0; }
+    #eat-popup-inner { background: rgba(10,10,10,0.95); border: 3px solid #ff9800; border-radius: 20px; padding: 20px 28px; color: white; box-shadow: 0 0 40px rgba(255,152,0,0.5); text-align: center; }
+    #eat-popup-inner .eat-title { font-size: 20px; font-weight: bold; color: #ff9800; margin-bottom: 8px; }
+    #eat-popup-inner .eat-quote { font-size: 14px; color: #ccc; font-style: italic; }
+
+    /* Touch Controls */
+    #touch-controls { display: none; }
+    #joystick-zone { position: fixed; bottom: 20px; left: 20px; width: 160px; height: 160px; pointer-events: all; z-index: 20; }
+    #joystick-base { width: 160px; height: 160px; background: rgba(255,255,255,0.12); border: 3px solid rgba(255,255,255,0.35); border-radius: 50%; position: absolute; }
+    #joystick-knob { width: 70px; height: 70px; background: rgba(2,136,209,0.8); border: 3px solid #fff; border-radius: 50%; position: absolute; top: 45px; left: 45px; }
+    #action-buttons { position: fixed; bottom: 30px; right: 20px; display: flex; flex-direction: column; gap: 14px; align-items: flex-end; pointer-events: all; z-index: 20; }
+    .action-btn { width: 72px; height: 72px; border-radius: 50%; border: 3px solid rgba(255,255,255,0.85); font-weight: bold; font-size: 12px; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; text-align: center; user-select: none; -webkit-user-select: none; transition: transform 0.1s; }
+    .action-btn:active { transform: scale(0.88); }
+    #btn-sprint { background: rgba(0,200,255,0.65); }
+    #btn-split  { background: rgba(100,200,100,0.65); }
+
+    /* Mobile overrides */
+    @media (max-width: 600px) {
+        #ui { display: none; }
+        #minimap { top: 15px; left: 15px; bottom: auto; right: auto; width: 110px; height: 110px; }
+        #leaderboard { top: 15px; right: 15px; min-width: 130px; }
+        #mobile-mass { display: block; }
+    }
+    #mobile-mass { display: none; position: fixed; top: 15px; right: 15px; background: rgba(255,255,255,0.92); padding: 7px 14px; border-radius: 12px; border: 2px solid #37474f; font-weight: bold; font-size: 13px; z-index: 10; pointer-events: none; color: #263238; }
+</style>
+
+
 </head>
-<body>
- 
-<div id="ui">
+<body><div id="ui">
     <div class="score-box">MASS: <span id="scoreVal">20</span></div>
     <div class="score-box" id="evo-status" style="color:#ab47bc; display:none;"></div>
     <div id="shield-bar" class="score-box">🛡️ SHIELD: <span id="shieldVal">10</span>s</div>
     <div id="sprint-status" class="score-box">SPRINTING...</div>
 </div>
-<div id="mobile-mass">MASS: <span id="mobileScoreVal">20</span></div>
- 
-<div id="leaderboard"><h3 style="margin:0 0 8px">TOP CELLS</h3><div id="lb-list"></div></div>
-<canvas id="minimap"></canvas>
- 
-<div id="evo-banner"><div id="evo-inner"><h2 id="evo-title"></h2><p id="evo-desc"></p></div></div>
- 
-<!-- Eat Quote Popup -->
-<div id="eat-popup">
+<div id="mobile-mass">MASS: <span id="mobileScoreVal">20</span></div><div id="leaderboard"><h3 style="margin:0 0 8px">TOP CELLS</h3><div id="lb-list"></div></div>
+<canvas id="minimap"></canvas><div id="evo-banner"><div id="evo-inner"><h2 id="evo-title"></h2><p id="evo-desc"></p></div></div><!-- Eat Quote Popup --><div id="eat-popup">
     <div id="eat-popup-inner">
         <div class="eat-title" id="eat-title"></div>
         <div class="eat-quote" id="eat-quote"></div>
     </div>
-</div>
- 
-<!-- Touch Controls -->
-<div id="touch-controls">
+</div><!-- Touch Controls --><div id="touch-controls">
     <div id="joystick-zone"><div id="joystick-base"></div><div id="joystick-knob"></div></div>
     <div id="action-buttons">
         <div class="action-btn" id="btn-sprint">SPRINT</div>
         <div class="action-btn" id="btn-split">SPLIT</div>
     </div>
-</div>
- 
-<div id="overlay">
+</div><div id="overlay">
     <h1>🦠 CYTOPLASM.IO</h1>
     <p>SPACE: Sprint  |  SHIFT: Split</p>
     <p style="color:#42a5f5; margin:6px 0">🛡️ Shielded for first <strong>10 seconds</strong>!</p>
@@ -111,25 +99,18 @@
     <p style="color:#00e676; margin:6px 0">🏆 Reach <strong>30,000 mass</strong> to WIN!</p>
     <p style="color:#ce93d8; font-size:13px; margin:6px 0">🧬 Evolve: 1000→Nucleus | 2000→Mito | 3000→Chloro</p>
     <button id="startBtn">SPAWN</button>
-</div>
- 
-<div id="death-screen">
+</div><div id="death-screen">
     <h1>💀 EATEN!</h1>
     <p id="death-msg" style="font-size:22px; margin:12px 20px;"></p>
     <button id="respawnBtn">RESPAWN</button>
-</div>
- 
-<div id="victory-screen">
+</div><div id="victory-screen">
     <h1>🏆 YOU WIN!</h1>
     <p style="font-size:20px; color:#a5d6a7; margin:4px 0;">You conquered the cytoplasm!</p>
     <div class="victory-stat">Final Mass: <span id="v-mass">0</span></div>
     <div class="victory-stat">Time to Victory: <span id="v-time">0:00</span></div>
     <div class="victory-stat">Bots Devoured: <span id="v-bots">0</span></div>
     <button id="victoryBtn">PLAY AGAIN</button>
-</div>
- 
-<canvas id="gameCanvas"></canvas>
- 
+</div><canvas id="gameCanvas"></canvas>
 <script>
 const canvas  = document.getElementById('gameCanvas');
 const ctx     = canvas.getContext('2d');
@@ -747,7 +728,7 @@ function update(){
         for(let f=food.length-1;f>=0;f--){if(Math.hypot(b.x-food[f].x,b.y-food[f].y)<b.r){b.mass+=1.5;b.r=Math.sqrt(b.mass)*CELL_SCALE;food.splice(f,1);spawnFood();}}
  
         // Bot eats smaller bot
-        for(let bi2=bots.length-1;bi2>=0;bi2–){
+        for(let bi2=bots.length-1;bi2>=0;bi2--){
             if(bi2===bi)continue; let b2=bots[bi2];if(!b2)continue;
             if(b.mass>b2.mass*1.15&&Math.hypot(b.x-b2.x,b.y-b2.y)<b.r*0.85){
                 b.mass+=b2.mass*0.5;b.r=Math.sqrt(b.mass)*CELL_SCALE;
@@ -1280,7 +1261,5 @@ function startGame(){
 document.getElementById('startBtn').onclick=startGame;
 document.getElementById('respawnBtn').onclick=startGame;
 document.getElementById('victoryBtn').onclick=startGame;
-</script>
-</body>
+</script></body>
 </html>
- 
