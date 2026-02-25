@@ -1,233 +1,97 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Cytoplasm.io ✦ Enhanced</title>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Exo+2:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <title>Cytoplasm.io</title>
     <style>
         * { box-sizing: border-box; }
-        body { margin: 0; overflow: hidden; background: #0d1117; font-family: 'Exo 2', sans-serif; touch-action: none; position: fixed; width: 100%; height: 100%; }
+        body { margin: 0; overflow: hidden; background: #cfd8dc; font-family: 'Segoe UI', sans-serif; touch-action: none; position: fixed; width: 100%; height: 100%; }
         canvas { display: block; }
-
-```
-    /* ─── HUD ─── */
-    #ui { position: fixed; top: 16px; left: 16px; pointer-events: none; z-index: 10; display: flex; flex-direction: column; gap: 6px; }
-    .hud-pill {
-        background: rgba(10,14,20,0.85); backdrop-filter: blur(8px);
-        padding: 7px 14px; border-radius: 20px;
-        border: 1px solid rgba(255,255,255,0.08);
-        font-family: 'Orbitron', monospace; font-size: 12px; font-weight: 700;
-        color: #e0f7fa; letter-spacing: 0.5px;
-        box-shadow: 0 2px 12px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05);
-    }
-    #mass-pill { color: #00e5ff; border-color: rgba(0,229,255,0.2); }
-    #sprint-pill { display: none; color: #00e5ff; border-color: rgba(0,229,255,0.3); }
-    #sprint-pill.exhausted { color: #ff5722; border-color: rgba(255,87,34,0.3); }
-    #shield-pill { display: none; color: #42a5f5; border-color: rgba(66,165,245,0.3); }
-    #evo-pill { display: none; color: #ce93d8; border-color: rgba(206,147,216,0.3); }
-    #combo-pill { display: none; color: #ffeb3b; border-color: rgba(255,235,59,0.3); font-size: 14px; }
-
-    /* Progress bar to win */
-    #progress-wrap {
-        position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%);
-        width: min(400px, 80vw); z-index: 10; pointer-events: none;
-    }
-    #progress-label { text-align: center; font-family: 'Orbitron', monospace; font-size: 10px; color: rgba(255,255,255,0.5); margin-bottom: 4px; letter-spacing: 1px; }
-    #progress-track {
-        height: 8px; background: rgba(255,255,255,0.07); border-radius: 4px;
-        border: 1px solid rgba(255,255,255,0.08); overflow: hidden;
-    }
-    #progress-fill {
-        height: 100%; width: 0%; border-radius: 4px;
-        background: linear-gradient(90deg, #00b4d8, #00e5ff, #90e0ef);
-        transition: width 0.3s; box-shadow: 0 0 8px #00e5ff88;
-    }
-
-    /* ─── Leaderboard ─── */
-    #leaderboard {
-        position: fixed; top: 16px; right: 16px;
-        background: rgba(10,14,20,0.85); backdrop-filter: blur(8px);
-        color: white; padding: 14px; border-radius: 14px;
-        border: 1px solid rgba(255,255,255,0.06);
-        min-width: 150px; font-size: 12px; z-index: 10; pointer-events: none;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.5);
-    }
-    #leaderboard h3 { margin: 0 0 10px; font-family: 'Orbitron', monospace; font-size: 10px; color: rgba(255,255,255,0.4); letter-spacing: 2px; }
-
-    /* ─── Minimap ─── */
-    #minimap { position: fixed; bottom: 60px; right: 16px; width: 130px; height: 130px;
-        background: rgba(10,14,20,0.85); border: 1px solid rgba(255,255,255,0.08);
-        border-radius: 10px; z-index: 5; backdrop-filter: blur(4px); }
-
-    /* ─── Threat radar ─── */
-    #threat-ring {
-        position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%);
-        width: 200px; height: 200px; border-radius: 50%; pointer-events: none;
-        border: 3px solid rgba(255,50,50,0);
-        z-index: 4; transition: border-color 0.2s;
-    }
-    #threat-ring.active { border-color: rgba(255,50,50,0.5); animation: threat-pulse 0.5s infinite alternate; }
-    @keyframes threat-pulse { from { box-shadow: 0 0 0 rgba(255,50,50,0); } to { box-shadow: 0 0 30px rgba(255,50,50,0.3); } }
-
-    /* ─── Overlays ─── */
-    #overlay {
-        position: fixed; inset: 0;
-        background: radial-gradient(ellipse at 50% 60%, #0a1628 0%, #050810 100%);
-        display: flex; flex-direction: column; align-items: center; justify-content: center;
-        color: white; z-index: 100; text-align: center; padding: 20px;
-    }
-    #overlay h1 { font-family: 'Orbitron', monospace; font-size: clamp(32px,6vw,72px); font-weight: 900; margin: 0;
-        background: linear-gradient(135deg, #00b4d8, #00e5ff, #90e0ef, #caf0f8);
-        -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-        text-shadow: none; letter-spacing: 4px;
-    }
-    .overlay-sub { font-family: 'Exo 2', sans-serif; font-size: 13px; color: rgba(255,255,255,0.45); letter-spacing: 3px; margin: 6px 0 24px; }
-    .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; max-width: 560px; margin: 0 auto 24px; }
-    .info-card {
-        background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07);
-        border-radius: 12px; padding: 12px 16px; text-align: left; font-size: 13px;
-    }
-    .info-card .ic-label { font-size: 10px; color: rgba(255,255,255,0.35); letter-spacing: 1px; margin-bottom: 4px; font-family: 'Orbitron', monospace; }
-    .info-card .ic-val { color: rgba(255,255,255,0.8); }
-    #startBtn {
-        padding: 16px 56px; font-size: 16px; font-family: 'Orbitron', monospace; font-weight: 700;
-        background: linear-gradient(135deg, #0077b6, #00b4d8, #0096c7);
-        border: none; color: white; border-radius: 50px; cursor: pointer;
-        letter-spacing: 2px; box-shadow: 0 4px 30px rgba(0,180,216,0.4);
-        transition: transform 0.15s, box-shadow 0.15s;
-    }
-    #startBtn:hover { transform: scale(1.04); box-shadow: 0 6px 40px rgba(0,180,216,0.6); }
-
-    #death-screen {
-        position: fixed; inset: 0;
-        background: radial-gradient(ellipse at 50% 40%, #1a0000 0%, #080000 100%);
-        display: none; flex-direction: column; align-items: center; justify-content: center;
-        color: white; z-index: 100; text-align: center; padding: 20px;
-    }
-    #death-screen h1 { font-family: 'Orbitron', monospace; font-size: 64px; margin: 0; color: #ef5350; text-shadow: 0 0 40px #ef535066; }
-    #respawnBtn {
-        padding: 14px 48px; font-size: 16px; font-family: 'Orbitron', monospace; font-weight: 700;
-        background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);
-        color: white; border-radius: 50px; cursor: pointer; letter-spacing: 2px; margin-top: 20px;
-        transition: background 0.2s;
-    }
-    #respawnBtn:hover { background: rgba(255,255,255,0.15); }
-
-    #victory-screen {
-        position: fixed; inset: 0;
-        background: radial-gradient(ellipse at 50% 40%, #001a0a 0%, #000d04 100%);
-        display: none; flex-direction: column; align-items: center; justify-content: center;
-        color: white; z-index: 100; text-align: center; padding: 20px;
-    }
-    #victory-screen h1 { font-family: 'Orbitron', monospace; font-size: 56px; color: #00e676; margin: 0 0 8px; text-shadow: 0 0 40px #00e67666; }
-    .v-stat { font-size: 18px; margin: 6px 0; color: rgba(255,255,255,0.5); }
-    .v-stat span { color: #00e676; font-weight: 700; }
-    #victoryBtn {
-        padding: 14px 48px; font-size: 16px; font-family: 'Orbitron', monospace; font-weight: 700;
-        background: linear-gradient(135deg, #00c853, #00e676); border: none; color: #001a08;
-        border-radius: 50px; cursor: pointer; letter-spacing: 2px; margin-top: 20px;
-        transition: transform 0.15s;
-    }
-    #victoryBtn:hover { transform: scale(1.04); }
-
-    /* ─── Evo Banner ─── */
-    #evo-banner { position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%) scale(0); z-index: 200; pointer-events: none; opacity: 0; transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1), opacity 0.4s; }
-    #evo-banner.show { transform: translate(-50%,-50%) scale(1); opacity: 1; }
-    #evo-banner.hide { transform: translate(-50%,-50%) scale(0.7); opacity: 0; }
-    #evo-inner { background: rgba(5,8,16,0.97); border: 2px solid rgba(0,229,255,0.5); border-radius: 20px; padding: 24px 44px; color: white; box-shadow: 0 0 60px rgba(0,229,255,0.2); text-align: center; }
-    #evo-inner h2 { margin: 0 0 6px; font-family: 'Orbitron', monospace; font-size: 24px; color: #00e5ff; letter-spacing: 1px; }
-    #evo-inner p { margin: 0; font-size: 13px; color: rgba(255,255,255,0.5); }
-
-    /* ─── Achievement Banner ─── */
-    #achievement-banner {
-        position: fixed; top: 80px; right: 16px; z-index: 150; pointer-events: none;
-        transform: translateX(220px); opacity: 0;
-        transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1), opacity 0.4s;
-    }
-    #achievement-banner.show { transform: translateX(0); opacity: 1; }
-    #achievement-banner.hide { transform: translateX(220px); opacity: 0; }
-    #ach-inner {
-        background: rgba(5,8,16,0.95); border: 1px solid rgba(255,235,59,0.3);
-        border-radius: 14px; padding: 12px 18px; color: white;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.5), 0 0 20px rgba(255,235,59,0.1);
-    }
-    #ach-inner .ach-label { font-size: 9px; color: #ffeb3b; letter-spacing: 2px; font-family: 'Orbitron', monospace; margin-bottom: 3px; }
-    #ach-inner .ach-title { font-size: 14px; font-weight: 700; color: white; }
-
-    /* ─── Eat Popup ─── */
-    #eat-popup { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%) scale(0); z-index: 300; pointer-events: none; opacity: 0; transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1), opacity 0.3s; max-width: 320px; width: 90%; }
-    #eat-popup.show { transform: translateX(-50%) scale(1); opacity: 1; }
-    #eat-popup.hide { transform: translateX(-50%) scale(0.85); opacity: 0; }
-    #eat-popup-inner { background: rgba(5,8,16,0.95); border: 1px solid rgba(255,152,0,0.25); border-radius: 16px; padding: 14px 22px; box-shadow: 0 4px 20px rgba(0,0,0,0.5); text-align: left; }
-    .eat-title { font-size: 14px; font-weight: 700; color: #ff9800; margin-bottom: 4px; }
-    .eat-quote { font-size: 12px; color: rgba(255,255,255,0.45); font-style: italic; }
-
-    /* ─── Touch Controls ─── */
-    #touch-controls { display: none; }
-    #joystick-zone { position: fixed; bottom: 24px; left: 24px; width: 150px; height: 150px; pointer-events: all; z-index: 20; }
-    #joystick-base { width: 150px; height: 150px; background: rgba(255,255,255,0.05); border: 2px solid rgba(255,255,255,0.15); border-radius: 50%; position: absolute; }
-    #joystick-knob { width: 64px; height: 64px; background: rgba(0,180,216,0.7); border: 2px solid rgba(0,229,255,0.5); border-radius: 50%; position: absolute; top: 43px; left: 43px; box-shadow: 0 0 16px rgba(0,229,255,0.3); }
-    #action-buttons { position: fixed; bottom: 36px; right: 16px; display: flex; flex-direction: column; gap: 12px; align-items: flex-end; pointer-events: all; z-index: 20; }
-    .action-btn { width: 68px; height: 68px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.2); font-weight: 700; font-size: 10px; font-family: 'Orbitron', monospace; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; text-align: center; user-select: none; -webkit-user-select: none; transition: transform 0.1s; letter-spacing: 0.5px; }
-    .action-btn:active { transform: scale(0.88); }
-    #btn-sprint { background: rgba(0,180,216,0.5); }
-    #btn-split { background: rgba(100,180,100,0.5); }
-
-    #mobile-mass { display: none; }
-    @media (max-width: 600px) {
-        #ui { display: none; }
-        #minimap { top: 16px; left: 16px; bottom: auto; right: auto; width: 100px; height: 100px; }
-        #mobile-mass { display: block; position: fixed; top: 126px; left: 16px; font-family: 'Orbitron', monospace; font-size: 11px; font-weight: 700; color: #00e5ff; background: rgba(10,14,20,0.85); padding: 6px 12px; border-radius: 12px; border: 1px solid rgba(0,229,255,0.2); z-index: 10; pointer-events: none; }
-        #progress-wrap { bottom: 180px; }
-    }
-
-    /* Scanning line overlay on canvas for atmosphere */
-    #scan-overlay {
-        position: fixed; inset: 0; pointer-events: none; z-index: 3;
-        background: repeating-linear-gradient(0deg, rgba(0,0,0,0) 0px, rgba(0,0,0,0) 2px, rgba(0,0,0,0.015) 2px, rgba(0,0,0,0.015) 4px);
-    }
-</style>
-```
-
+ 
+        #ui { position: fixed; top: 15px; left: 15px; pointer-events: none; z-index: 10; display: flex; flex-direction: column; gap: 5px; }
+        .score-box { background: rgba(255,255,255,0.9); padding: 8px 15px; border-radius: 15px; border: 2px solid #37474f; font-weight: bold; font-size: 14px; }
+        #sprint-status { background: rgba(0,229,255,0.2); color: #00838f; border-color: #00e5ff; display: none; }
+        .exhausted { background: rgba(255,87,34,0.2) !important; color: #d84315 !important; border-color: #ff5722 !important; }
+        #shield-bar { background: rgba(100,180,255,0.25); color: #1565c0; border-color: #42a5f5; display: none; }
+ 
+        #leaderboard { position: fixed; top: 15px; right: 15px; background: rgba(0,0,0,0.6); color: white; padding: 12px; border-radius: 10px; min-width: 140px; font-size: 12px; z-index: 10; pointer-events: none; }
+        #minimap { position: fixed; bottom: 20px; right: 20px; width: 130px; height: 130px; background: rgba(0,0,0,0.4); border: 2px solid #fff; border-radius: 5px; z-index: 5; }
+ 
+        #overlay { position: fixed; inset: 0; background: rgba(38,50,56,0.98); display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; z-index: 100; text-align: center; padding: 20px; }
+        #startBtn { padding: 15px 50px; font-size: 20px; background: #0288d1; border: none; color: white; border-radius: 40px; font-weight: bold; cursor: pointer; margin-top: 20px; }
+        #death-screen { position: fixed; inset: 0; background: rgba(180,0,0,0.92); display: none; flex-direction: column; align-items: center; justify-content: center; color: white; z-index: 100; text-align: center; padding: 20px; }
+        #death-screen h1 { font-size: 64px; margin: 0; }
+        #respawnBtn { padding: 15px 50px; font-size: 20px; background: white; border: none; color: #c00; border-radius: 40px; font-weight: bold; cursor: pointer; margin-top: 20px; }
+ 
+        /* Victory Screen */
+        #victory-screen { position: fixed; inset: 0; background: linear-gradient(135deg, rgba(0,60,20,0.97), rgba(0,100,60,0.97)); display: none; flex-direction: column; align-items: center; justify-content: center; color: white; z-index: 100; text-align: center; padding: 20px; }
+        #victory-screen h1 { font-size: 60px; margin: 0 0 10px; }
+        .victory-stat { font-size: 22px; margin: 8px 0; color: #a5d6a7; }
+        .victory-stat span { color: #ffffff; font-weight: bold; }
+        #victoryBtn { padding: 15px 50px; font-size: 20px; background: #00e676; border: none; color: #003300; border-radius: 40px; font-weight: bold; cursor: pointer; margin-top: 24px; }
+ 
+        /* Evo Banner */
+        #evo-banner { position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%) scale(0); z-index: 200; pointer-events: none; opacity: 0; transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1), opacity 0.4s; }
+        #evo-banner.show { transform: translate(-50%,-50%) scale(1); opacity: 1; }
+        #evo-banner.hide { transform: translate(-50%,-50%) scale(0.7); opacity: 0; }
+        #evo-inner { background: rgba(5,15,30,0.97); border: 3px solid #00e5ff; border-radius: 22px; padding: 26px 44px; color: white; box-shadow: 0 0 50px #00e5ff66; text-align: center; }
+        #evo-inner h2 { margin: 0 0 8px; font-size: 30px; color: #00e5ff; letter-spacing: 1px; }
+        #evo-inner p { margin: 0; font-size: 15px; color: #90a4ae; }
+ 
+        /* Eat Quote Popup */
+        #eat-popup { position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%) scale(0); z-index: 300; pointer-events: none; opacity: 0; transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1), opacity 0.3s; max-width: 340px; width: 90%; }
+        #eat-popup.show { transform: translate(-50%,-50%) scale(1); opacity: 1; }
+        #eat-popup.hide { transform: translate(-50%,-50%) scale(0.8); opacity: 0; }
+        #eat-popup-inner { background: rgba(10,10,10,0.95); border: 3px solid #ff9800; border-radius: 20px; padding: 20px 28px; color: white; box-shadow: 0 0 40px rgba(255,152,0,0.5); text-align: center; }
+        #eat-popup-inner .eat-title { font-size: 20px; font-weight: bold; color: #ff9800; margin-bottom: 8px; }
+        #eat-popup-inner .eat-quote { font-size: 14px; color: #ccc; font-style: italic; }
+ 
+        /* Touch Controls */
+        #touch-controls { display: none; }
+        #joystick-zone { position: fixed; bottom: 20px; left: 20px; width: 160px; height: 160px; pointer-events: all; z-index: 20; }
+        #joystick-base { width: 160px; height: 160px; background: rgba(255,255,255,0.12); border: 3px solid rgba(255,255,255,0.35); border-radius: 50%; position: absolute; }
+        #joystick-knob { width: 70px; height: 70px; background: rgba(2,136,209,0.8); border: 3px solid #fff; border-radius: 50%; position: absolute; top: 45px; left: 45px; }
+        #action-buttons { position: fixed; bottom: 30px; right: 20px; display: flex; flex-direction: column; gap: 14px; align-items: flex-end; pointer-events: all; z-index: 20; }
+        .action-btn { width: 72px; height: 72px; border-radius: 50%; border: 3px solid rgba(255,255,255,0.85); font-weight: bold; font-size: 12px; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; text-align: center; user-select: none; -webkit-user-select: none; transition: transform 0.1s; }
+        .action-btn:active { transform: scale(0.88); }
+        #btn-sprint { background: rgba(0,200,255,0.65); }
+        #btn-split  { background: rgba(100,200,100,0.65); }
+ 
+        /* Mobile overrides */
+        @media (max-width: 600px) {
+            #ui { display: none; }
+            #minimap { top: 15px; left: 15px; bottom: auto; right: auto; width: 110px; height: 110px; }
+            #leaderboard { top: 15px; right: 15px; min-width: 130px; }
+            #mobile-mass { display: block; }
+        }
+        #mobile-mass { display: none; position: fixed; top: 15px; right: 15px; background: rgba(255,255,255,0.92); padding: 7px 14px; border-radius: 12px; border: 2px solid #37474f; font-weight: bold; font-size: 13px; z-index: 10; pointer-events: none; color: #263238; }
+    </style>
 </head>
 <body>
-
-<div id="scan-overlay"></div>
-
+ 
 <div id="ui">
-    <div class="hud-pill" id="mass-pill">MASS: <span id="scoreVal">20</span></div>
-    <div class="hud-pill" id="evo-pill"></div>
-    <div class="hud-pill" id="shield-pill">🛡 SHIELD: <span id="shieldVal">10</span>s</div>
-    <div class="hud-pill" id="sprint-pill">SPRINT</div>
-    <div class="hud-pill" id="combo-pill">🔥 COMBO ×<span id="comboVal">1</span></div>
+    <div class="score-box">MASS: <span id="scoreVal">20</span></div>
+    <div class="score-box" id="evo-status" style="color:#ab47bc; display:none;"></div>
+    <div id="shield-bar" class="score-box">🛡️ SHIELD: <span id="shieldVal">10</span>s</div>
+    <div id="sprint-status" class="score-box">SPRINTING...</div>
 </div>
 <div id="mobile-mass">MASS: <span id="mobileScoreVal">20</span></div>
-
-<div id="progress-wrap">
-    <div id="progress-label">PROGRESS TO VICTORY</div>
-    <div id="progress-track"><div id="progress-fill"></div></div>
-</div>
-
-<div id="leaderboard"><h3>LEADERBOARD</h3><div id="lb-list"></div></div>
+ 
+<div id="leaderboard"><h3 style="margin:0 0 8px">TOP CELLS</h3><div id="lb-list"></div></div>
 <canvas id="minimap"></canvas>
-<div id="threat-ring"></div>
-
-<!-- Evo Banner -->
-
+ 
 <div id="evo-banner"><div id="evo-inner"><h2 id="evo-title"></h2><p id="evo-desc"></p></div></div>
-
-<!-- Achievement Banner -->
-
-<div id="achievement-banner"><div id="ach-inner"><div class="ach-label">ACHIEVEMENT</div><div class="ach-title" id="ach-title"></div></div></div>
-
-<!-- Eat Popup -->
-
-<div id="eat-popup"><div id="eat-popup-inner"><div class="eat-title" id="eat-title"></div><div class="eat-quote" id="eat-quote"></div></div></div>
-
+ 
+<!-- Eat Quote Popup -->
+<div id="eat-popup">
+    <div id="eat-popup-inner">
+        <div class="eat-title" id="eat-title"></div>
+        <div class="eat-quote" id="eat-quote"></div>
+    </div>
+</div>
+ 
 <!-- Touch Controls -->
-
 <div id="touch-controls">
     <div id="joystick-zone"><div id="joystick-base"></div><div id="joystick-knob"></div></div>
     <div id="action-buttons">
@@ -235,53 +99,50 @@
         <div class="action-btn" id="btn-split">SPLIT</div>
     </div>
 </div>
-
+ 
 <div id="overlay">
-    <h1>☣ CYTOPLASM.IO</h1>
-    <div class="overlay-sub">ENHANCED EDITION</div>
-    <div class="info-grid">
-        <div class="info-card"><div class="ic-label">CONTROLS</div><div class="ic-val">Mouse to move • SPACE to sprint • SHIFT to split</div></div>
-        <div class="info-card"><div class="ic-label">WIN CONDITION</div><div class="ic-val">Reach <strong style="color:#00e5ff">30,000 mass</strong> to conquer!</div></div>
-        <div class="info-card"><div class="ic-label">VIRUSES</div><div class="ic-val">🟢 Bursts cells &gt;130 mass<br>⚫ Spews food (eat at 20K)<br>🔴 Drains 20% (eat at 10K)</div></div>
-        <div class="info-card"><div class="ic-label">EVOLUTION</div><div class="ic-val">🧬 Nucleus at 1,000<br>⚡ Mitochondria at 2,000<br>🌿 Chloroplasts at 3,000</div></div>
-        <div class="info-card"><div class="ic-label">NEW: POWER-UPS</div><div class="ic-val">⭐ Mass Magnet • 🔶 Speed Boost<br>💊 Mass Pill • ☢ Nuke Burst</div></div>
-        <div class="info-card"><div class="ic-label">NEW: MECHANICS</div><div class="ic-val">🔥 Combo kills = bonus mass<br>🌊 Current zones push you<br>🛡 10-sec spawn shield</div></div>
-    </div>
-    <button id="startBtn">ENTER THE CYTOPLASM</button>
+    <h1>🦠 CYTOPLASM.IO</h1>
+    <p>SPACE: Sprint  |  SHIFT: Split</p>
+    <p style="color:#42a5f5; margin:6px 0">🛡️ Shielded for first <strong>10 seconds</strong>!</p>
+    <p style="color:#ff9800; margin:6px 0">⚠️ Bots grow hungrier and more aggressive over time!</p>
+    <p style="color:#ef5350; margin:6px 0">☣️ Green viruses burst cells over mass 130!</p>
+    <p style="color:#111; margin:6px 0">⚫ <strong>Black viruses</strong> spew food — eat at 20,000 mass!</p>
+    <p style="color:#e53935; margin:6px 0">🔴 <strong>Red viruses</strong> drain 20% mass — eat at 10,000 mass!</p>
+    <p style="color:#00e676; margin:6px 0">🏆 Reach <strong>30,000 mass</strong> to WIN!</p>
+    <p style="color:#ce93d8; font-size:13px; margin:6px 0">🧬 Evolve: 1000→Nucleus | 2000→Mito | 3000→Chloro</p>
+    <button id="startBtn">SPAWN</button>
 </div>
-
+ 
 <div id="death-screen">
-    <h1>☠ DEVOURED</h1>
-    <p id="death-msg" style="font-size:18px; margin:16px; color:rgba(255,255,255,0.6);"></p>
+    <h1>💀 EATEN!</h1>
+    <p id="death-msg" style="font-size:22px; margin:12px 20px;"></p>
     <button id="respawnBtn">RESPAWN</button>
 </div>
-
+ 
 <div id="victory-screen">
-    <h1>🏆 VICTORY</h1>
-    <p style="color:rgba(255,255,255,0.4); margin:4px 0; letter-spacing:2px; font-size:12px; font-family:'Orbitron',monospace;">YOU CONQUERED THE CYTOPLASM</p>
-    <div class="v-stat">Final Mass: <span id="v-mass">0</span></div>
-    <div class="v-stat">Time: <span id="v-time">0:00</span></div>
-    <div class="v-stat">Bots Devoured: <span id="v-bots">0</span></div>
-    <div class="v-stat">Peak Combo: <span id="v-combo">1</span>×</div>
+    <h1>🏆 YOU WIN!</h1>
+    <p style="font-size:20px; color:#a5d6a7; margin:4px 0;">You conquered the cytoplasm!</p>
+    <div class="victory-stat">Final Mass: <span id="v-mass">0</span></div>
+    <div class="victory-stat">Time to Victory: <span id="v-time">0:00</span></div>
+    <div class="victory-stat">Bots Devoured: <span id="v-bots">0</span></div>
     <button id="victoryBtn">PLAY AGAIN</button>
 </div>
-
+ 
 <canvas id="gameCanvas"></canvas>
-
+ 
 <script>
 const canvas  = document.getElementById('gameCanvas');
 const ctx     = canvas.getContext('2d');
 const mCanvas = document.getElementById('minimap');
 const mCtx    = mCanvas.getContext('2d');
-
+ 
 const scoreEl        = document.getElementById('scoreVal');
 const mobileScoreEl  = document.getElementById('mobileScoreVal');
-const evoStatusEl    = document.getElementById('evo-pill');
-const shieldPillEl   = document.getElementById('shield-pill');
+const mobileMassEl   = document.getElementById('mobile-mass');
+const evoStatusEl    = document.getElementById('evo-status');
+const shieldBarEl    = document.getElementById('shield-bar');
 const shieldValEl    = document.getElementById('shieldVal');
-const sprintPillEl   = document.getElementById('sprint-pill');
-const comboPillEl    = document.getElementById('combo-pill');
-const comboValEl     = document.getElementById('comboVal');
+const sprintStatusEl = document.getElementById('sprint-status');
 const lbList         = document.getElementById('lb-list');
 const deathScreen    = document.getElementById('death-screen');
 const deathMsg       = document.getElementById('death-msg');
@@ -293,108 +154,61 @@ const lbEl           = document.getElementById('leaderboard');
 const eatPopup       = document.getElementById('eat-popup');
 const eatTitleEl     = document.getElementById('eat-title');
 const eatQuoteEl     = document.getElementById('eat-quote');
-const threatRing     = document.getElementById('threat-ring');
-const progressFill   = document.getElementById('progress-fill');
-const achBanner      = document.getElementById('achievement-banner');
-const achTitle       = document.getElementById('ach-title');
-
-// ── Constants ──
-const WORLD_SIZE     = 5500;
+ 
+const WORLD_SIZE     = 5000;
 const MERGE_COOLDOWN = 15000;
 const CELL_SCALE     = 5;
 const SHIELD_MS      = 10000;
 const WIN_MASS       = 30000;
 const PHASE1_END     = 60000;
 const PHASE2_END     = 120000;
-const MAX_BOTS       = 20;
-const BOT_START_MASS = 20;
-const PLAYER_START_MASS = 20;
-const BOT_RESPAWN_DELAY = 60000;
-const GRID_CELL = 200, GRID_COLS = Math.ceil(WORLD_SIZE / GRID_CELL);
-
-// ── Audio ──
-let audioCtx = null;
-function getAudio() { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); return audioCtx; }
-function playTone(freq, type, duration, vol=0.15, detune=0) {
-    try {
-        let a = getAudio();
-        let o = a.createOscillator(), g = a.createGain();
-        o.connect(g); g.connect(a.destination);
-        o.type = type; o.frequency.value = freq; o.detune.value = detune;
-        g.gain.setValueAtTime(vol, a.currentTime);
-        g.gain.exponentialRampToValueAtTime(0.001, a.currentTime + duration);
-        o.start(); o.stop(a.currentTime + duration);
-    } catch(e) {}
-}
-function playEatFood() { playTone(600 + Math.random()*200, 'sine', 0.06, 0.06); }
-function playEatBot() {
-    playTone(220,'sawtooth',0.18,0.18); setTimeout(()=>playTone(330,'sine',0.22,0.12),60); setTimeout(()=>playTone(440,'sine',0.15,0.08),130);
-}
-function playEvo() {
-    [440,554,659,880].forEach((f,i)=>setTimeout(()=>playTone(f,'sine',0.35,0.15),i*80));
-}
-function playDeath() {
-    [330,220,147].forEach((f,i)=>setTimeout(()=>playTone(f,'sawtooth',0.4,0.2),i*120));
-}
-function playPowerup() {
-    [523,659,784,1047].forEach((f,i)=>setTimeout(()=>playTone(f,'sine',0.25,0.15),i*60));
-}
-function playCombo(mult) {
-    playTone(220*mult,'sine',0.2,0.12); setTimeout(()=>playTone(220*mult*1.5,'sine',0.15,0.08),80);
-}
-function playAlert() { playTone(180,'sawtooth',0.15,0.1); setTimeout(()=>playTone(160,'sawtooth',0.15,0.1),200); }
-
-// ── Bot Roster ──
+ 
+// ── Bot name/quote roster ──
 const BOT_ROSTER = [
-    { name:'Amy',    full:'Amy the Amoeba',          quote:'She was a blob. A beautiful blob.' },
-    { name:'Genie',  full:'Genie the Euglena',        quote:'Couldn\'t decide if she was plant or animal.' },
-    { name:'Para',   full:'Para the Paramecium',      quote:'Covered in tiny hairs. Still didn\'t see you coming.' },
-    { name:'Volvie', full:'Volvox',                   quote:'She traveled in groups. The group abandoned her.' },
-    { name:'Dino',   full:'Dino the Dinoflagellate',  quote:'He glowed in the dark. Not anymore.' },
-    { name:'Stylo',  full:'Stylo',                    quote:'Had little legs. Needed bigger ones.' },
-    { name:'Bleppy', full:'Bleppy the Blepharisma',   quote:'He was pink. He was proud. He was lunch.' },
-    { name:'Oxi',    full:'Oxi the Oxytricha',        quote:'A master of disguise. Not disguised enough.' },
-    { name:'Vorty',  full:'Vorty the Vorticella',     quote:'Spent her whole life spinning. Dizzy to the end.' },
-    { name:'Spiro',  full:'Spiro the Spirostomum',    quote:'The longest single-celled organism alive. Key word: was.' },
-    { name:'Noctie', full:'Noctiluca',                quote:'Literally bioluminescent. Totally outclassed.' },
-    { name:'Diddy',  full:'Didinium',                 quote:'He ate Paramecia whole. Ironic, really.' },
-    { name:'Chaos',  full:'Chaos Difflugia',          quote:'His name was Chaos. He was not prepared for you.' },
-    { name:'Tetra',  full:'Tetrahymena',              quote:'Used in cancer research. Couldn\'t cure getting eaten.' },
-    { name:'Gonium', full:'Gonium',                   quote:'A team player. The team lost.' },
-    { name:'Stenty', full:'Stenty the Stentor',       quote:'Shaped like a trumpet. Played no final song.' },
-    { name:'Peri',   full:'Peridinium',               quote:'Armored with cellulose plates. Not enough plates.' },
-    { name:'Gromia', full:'Gromia',                   quote:'She rolled across the seafloor. This isn\'t the seafloor.' },
-    { name:'Arcey',  full:'Arcella',                  quote:'Built a little shell house. Foreclosed.' },
-    { name:'Cilia',  full:'Cilia',                    quote:'All those tiny hairs, zero escape velocity.' },
+    { name:'Amy',    full:'Amy the Amoeba',       quote:'She was a blob. A beautiful blob.' },
+    { name:'Genie',  full:'Genie the Euglena',     quote:'Couldn\'t decide if she was a plant or animal. Identity crisis solved.' },
+    { name:'Para',   full:'Para the Paramecium',   quote:'Covered in tiny hairs. Still didn\'t see you coming.' },
+    { name:'Volvie', full:'Volvox',                quote:'She traveled in groups. Apparently the group abandoned her.' },
+    { name:'Dino',   full:'Dino the Dinoflagellate',quote:'He glowed in the dark. Not anymore.' },
+    { name:'Stylo',  full:'Stylo',                 quote:'Had little legs. Needed bigger ones.' },
+    { name:'Bleppy', full:'Bleppy the Blepharisma',quote:'He was pink. He was proud. He was lunch.' },
+    { name:'Oxi',    full:'Oxi the Oxytricha',     quote:'A master of disguise. Not disguised enough.' },
+    { name:'Vorty',  full:'Vorty the Vorticella',  quote:'Spent her whole life spinning. Dizzy to the end.' },
+    { name:'Spiro',  full:'Spiro the Spirostomum', quote:'The longest single-celled organism alive. Key word: was.' },
+    { name:'Noctie', full:'Noctiluca',             quote:'Literally bioluminescent. Totally outclassed.' },
+    { name:'Diddy',  full:'Didinium',              quote:'He ate Paramecia whole. Ironic, really.' },
+    { name:'Chaos',  full:'Chaos the Chaos Difflugia',quote:'His name was Chaos. He was not prepared for you.' },
+    { name:'Tetra',  full:'Tetrahymena',           quote:'Used in cancer research. Couldn\'t cure getting eaten.' },
+    { name:'Gonium', full:'Gonium',                quote:'A team player. The team lost.' },
+    { name:'Stenty', full:'Stenty the Stentor',    quote:'Shaped like a trumpet. Played no final song.' },
+    { name:'Peri',   full:'Peridinium',            quote:'Armored with cellulose plates. Not enough plates.' },
+    { name:'Gromia', full:'Gromia',                quote:'She rolled across the seafloor. This isn\'t the seafloor.' },
+    { name:'Arcey',  full:'Arcella',               quote:'Built a little shell house. Foreclosed.' },
+    { name:'Cilia',  full:'Cilia',                 quote:'All those tiny hairs, zero escape velocity.' },
 ];
-
-// ── State ──
+ 
 let width, height, gameActive = false;
 let playerCells = [], food = [], bots = [], particles = [], viruses = [], blackViruses = [], redViruses = [], atp = [];
-let powerups = [], currents = [];
 let joyX = 0, joyY = 0, keys = {};
-let cameraZoom = 1, targetZoom = 1;
+let cameraZoom = 1;
 let metabolicBoost = 0;
 let sprintBaselineMass = null, sprintCooldownTimer = 0, isSprinting = false;
 let gameStartTime = 0, botsEaten = 0, peakMass = 0;
 let hasNucleus = false, hasMitochondria = false, hasChloroplasts = false;
 let shieldEndTime = 0, lastLBUpdate = 0;
-let avgX = WORLD_SIZE/2, avgY = WORLD_SIZE/2;
-let botRespawnQueue = [], usedRosterIndices = [];
-let comboCount = 1, comboTimer = 0, peakCombo = 1;
-let achievements = new Set();
-let spatialGrid = {};
-let lastFoodSoundTime = 0;
-let wobbleTime = 0;
-
-// ── Power-up types ──
-const POWERUP_TYPES = [
-    { id:'magnet',  label:'⭐ MASS MAGNET',  color:'#ffd700', duration:8000,  desc:'Pulls nearby food!' },
-    { id:'speed',   label:'🔶 SPEED BOOST',  color:'#ff9800', duration:10000, desc:'2× movement speed!' },
-    { id:'masspill',label:'💊 MASS PILL',    color:'#e91e63', duration:0,     desc:'+300 mass instantly!' },
-    { id:'nuke',    label:'☢ NUKE BURST',   color:'#76ff03', duration:0,     desc:'Destroys nearby bots!' },
-];
-
+let avgX = 2500, avgY = 2500;
+let botRespawnQueue = [];
+let usedRosterIndices = [];
+ 
+const MAX_BOTS = 20;
+const BOT_START_MASS = 20;
+const PLAYER_START_MASS = 20;
+const BOT_RESPAWN_DELAY = 60000;
+ 
+const isTouchDevice = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
+const isMobile = isTouchDevice && window.innerWidth <= 600;
+ 
+// ── Pick a unique bot from roster ──
 function pickBotEntry() {
     if (usedRosterIndices.length >= BOT_ROSTER.length) usedRosterIndices = [];
     let available = BOT_ROSTER.map((_,i)=>i).filter(i=>!usedRosterIndices.includes(i));
@@ -402,46 +216,62 @@ function pickBotEntry() {
     usedRosterIndices.push(idx);
     return BOT_ROSTER[idx];
 }
-
-// ── Active effects on player ──
-let activeEffects = {};
-
-// ── Achievements ──
-const ACHIEVEMENTS_LIST = [
-    { id:'first_blood', label:'🩸 First Blood', check: ()=>botsEaten>=1 },
-    { id:'combo3',      label:'🔥 Triple Kill',  check: ()=>comboCount>=3 },
-    { id:'combo5',      label:'💥 Quintuple Kill',check: ()=>comboCount>=5 },
-    { id:'evolve1',     label:'🧬 Eukaryote',    check: ()=>hasNucleus },
-    { id:'evolve3',     label:'🌿 Photosynthesizer',check:()=>hasChloroplasts },
-    { id:'mass5k',      label:'📈 5,000 Mass',   check: ()=>peakMass>=5000 },
-    { id:'mass15k',     label:'🚀 15,000 Mass',  check: ()=>peakMass>=15000 },
-    { id:'powerup',     label:'⚡ Power Hungry',  check: ()=>Object.keys(activeEffects).length>0 },
+ 
+// ── Mobile layout ──
+function setupMobileLayout() {
+    if (!isMobile) return;
+    document.getElementById('touch-controls').style.display = 'block';
+    function positionMobileMass() {
+        let lb = lbEl.getBoundingClientRect();
+        mobileMassEl.style.top = (lb.bottom + 8) + 'px';
+    }
+    positionMobileMass();
+    window.addEventListener('resize', positionMobileMass);
+    new MutationObserver(positionMobileMass).observe(lbEl, {childList:true,subtree:true});
+}
+ 
+// ── Evolution ──
+const MILESTONES = [
+    { mass:1000, key:'nucleus',      title:'🧬 NUCLEUS FORMED!',      desc:'You are now a Eukaryote — your DNA is protected!' },
+    { mass:2000, key:'mitochondria', title:'⚡ MITOCHONDRIA EVOLVED!', desc:'The powerhouse of the cell! Permanent speed boost.' },
+    { mass:3000, key:'chloroplasts', title:'🌿 CHLOROPLASTS EVOLVED!', desc:'You can photosynthesize! Food is now worth 2× mass.' },
 ];
-let achQueue = [];
-let currentAch = null, achTO = null;
-
-function checkAchievements() {
-    for (let ach of ACHIEVEMENTS_LIST) {
-        if (!achievements.has(ach.id) && ach.check()) {
-            achievements.add(ach.id);
-            achQueue.push(ach.label);
-            if (!currentAch) showNextAch();
+function checkEvolution(totalMass) {
+    for (let m of MILESTONES) {
+        if (totalMass >= m.mass) {
+            if (m.key==='nucleus'      && !hasNucleus)      { hasNucleus=true;      triggerEvo(m); }
+            if (m.key==='mitochondria' && !hasMitochondria) { hasMitochondria=true; triggerEvo(m); }
+            if (m.key==='chloroplasts' && !hasChloroplasts) { hasChloroplasts=true; triggerEvo(m); }
         }
     }
+    let parts=[];
+    if(hasNucleus)      parts.push('🧬 Nucleus');
+    if(hasMitochondria) parts.push('⚡ Mito');
+    if(hasChloroplasts) parts.push('🌿 Chloro');
+    evoStatusEl.style.display = parts.length ? 'block':'none';
+    evoStatusEl.innerText = parts.join(' | ');
 }
-function showNextAch() {
-    if (achQueue.length === 0) { currentAch = null; return; }
-    currentAch = achQueue.shift();
-    achTitle.innerText = currentAch;
-    achBanner.className = 'show';
-    if (achTO) clearTimeout(achTO);
-    achTO = setTimeout(() => {
-        achBanner.className = 'hide';
-        setTimeout(showNextAch, 500);
-    }, 2500);
+let evoBannerTO=null;
+function triggerEvo(m) {
+    evoTitle.innerText=m.title; evoDesc.innerText=m.desc;
+    evoBanner.className='show';
+    if(evoBannerTO) clearTimeout(evoBannerTO);
+    evoBannerTO=setTimeout(()=>{ evoBanner.className='hide'; },3800);
 }
-
-// ── Spatial grid ──
+ 
+// ── Eat Quote Popup ──
+let eatPopupTO=null;
+function showEatPopup(entry) {
+    eatTitleEl.innerText = `😋 You ate ${entry.full}!`;
+    eatQuoteEl.innerText = entry.quote;
+    eatPopup.className='show';
+    if(eatPopupTO) clearTimeout(eatPopupTO);
+    eatPopupTO=setTimeout(()=>{ eatPopup.className='hide'; }, 2200);
+}
+ 
+// ── Spatial Grid ──
+const GRID_CELL=200, GRID_COLS=Math.ceil(WORLD_SIZE/GRID_CELL);
+let spatialGrid={};
 function buildGrid(entities){
     spatialGrid={};
     for(let e of entities){
@@ -461,136 +291,99 @@ function getNearby(x,y,r){
     }
     return results;
 }
-
-// ── Mobile ──
-const isTouchDevice = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
-const isMobile = isTouchDevice && window.innerWidth <= 600;
-
+ 
 // ── Init ──
 function init() {
-    let pr = Math.sqrt(PLAYER_START_MASS) * CELL_SCALE;
-    playerCells = [{x:WORLD_SIZE/2, y:WORLD_SIZE/2, mass:PLAYER_START_MASS, r:pr, vx:0, vy:0, splitTime:0, wobble:0}];
+    let pr=Math.sqrt(PLAYER_START_MASS)*CELL_SCALE;
+    playerCells=[{x:WORLD_SIZE/2,y:WORLD_SIZE/2,mass:PLAYER_START_MASS,r:pr,vx:0,vy:0,splitTime:0}];
     food=[]; bots=[]; particles=[]; viruses=[]; blackViruses=[]; redViruses=[]; atp=[]; botRespawnQueue=[]; usedRosterIndices=[];
-    powerups=[]; currents=[];
-    activeEffects={}; achQueue=[]; achievements=new Set(); currentAch=null;
     metabolicBoost=0; sprintBaselineMass=null; sprintCooldownTimer=0; isSprinting=false;
     hasNucleus=false; hasMitochondria=false; hasChloroplasts=false;
     evoStatusEl.style.display='none'; evoBanner.className=''; eatPopup.className='';
     shieldEndTime=Date.now()+SHIELD_MS; gameStartTime=Date.now(); botsEaten=0; peakMass=0;
-    comboCount=1; comboTimer=0; peakCombo=1; wobbleTime=0;
-
-    for(let i=0;i<800;i++) spawnFood();
+ 
+    for(let i=0;i<700;i++) spawnFood();
     for(let i=0;i<MAX_BOTS;i++) spawnBot();
-    for(let i=0;i<15;i++) viruses.push({x:Math.random()*WORLD_SIZE, y:Math.random()*WORLD_SIZE, r:60});
+    for(let i=0;i<15;i++) viruses.push({x:Math.random()*WORLD_SIZE,y:Math.random()*WORLD_SIZE,r:60});
+ 
+    // Black viruses — 3, permanent, food-spewing
     for(let i=0;i<3;i++) blackViruses.push({
-        x:400+Math.random()*(WORLD_SIZE-800), y:400+Math.random()*(WORLD_SIZE-800),
-        r:80, pulseT:Math.random()*Math.PI*2, spewTimer:0
+        x:300+Math.random()*(WORLD_SIZE-600), y:300+Math.random()*(WORLD_SIZE-600),
+        r:75, pulseT:Math.random()*Math.PI*2, spewTimer:0
     });
+ 
+    // Red viruses — 5, drifting
     for(let i=0;i<5;i++) spawnRedVirus();
-    for(let i=0;i<30;i++) atp.push({x:Math.random()*WORLD_SIZE, y:Math.random()*WORLD_SIZE, r:10});
-
-    // Power-ups
-    for(let i=0;i<8;i++) spawnPowerup();
-
-    // Currents (flowing zones)
-    for(let i=0;i<5;i++) {
-        let angle = Math.random()*Math.PI*2;
-        currents.push({
-            x: 500 + Math.random()*(WORLD_SIZE-1000),
-            y: 500 + Math.random()*(WORLD_SIZE-1000),
-            r: 200 + Math.random()*150,
-            vx: Math.cos(angle)*1.2,
-            vy: Math.sin(angle)*1.2,
-            color: `hsl(${180+Math.random()*60},70%,50%)`,
-            drift: Math.random()*Math.PI*2,
-            driftSpeed: 0.001+Math.random()*0.001
-        });
-    }
-
+ 
+    for(let i=0;i<30;i++) atp.push({x:Math.random()*WORLD_SIZE,y:Math.random()*WORLD_SIZE,r:10});
+ 
     deathScreen.style.display='none';
     victoryScreen.style.display='none';
     resize(); setupMobileLayout();
 }
-
-function spawnPowerup() {
-    let type = POWERUP_TYPES[Math.floor(Math.random()*POWERUP_TYPES.length)];
-    powerups.push({
-        x: 200 + Math.random()*(WORLD_SIZE-400),
-        y: 200 + Math.random()*(WORLD_SIZE-400),
-        r: 18,
-        type: type,
-        pulseT: Math.random()*Math.PI*2,
-        bobT: Math.random()*Math.PI*2
-    });
-}
-
+ 
 function spawnRedVirus() {
     let angle=Math.random()*Math.PI*2, speed=0.3+Math.random()*0.4;
     redViruses.push({
         x:200+Math.random()*(WORLD_SIZE-400), y:200+Math.random()*(WORLD_SIZE-400),
-        r:55, vx:Math.cos(angle)*speed, vy:Math.sin(angle)*speed, pulseT:Math.random()*Math.PI*2
+        r:55, vx:Math.cos(angle)*speed, vy:Math.sin(angle)*speed,
+        pulseT:Math.random()*Math.PI*2
     });
 }
-
+ 
 function spawnFood(ox,oy) {
     food.push({
         x: ox!==undefined ? ox+(Math.random()-.5)*80 : Math.random()*WORLD_SIZE,
         y: oy!==undefined ? oy+(Math.random()-.5)*80 : Math.random()*WORLD_SIZE,
-        r: 6, c:`hsl(${Math.random()*360},60%,60%)`
+        r:6, c:`hsl(${Math.random()*360},60%,60%)`
     });
 }
-
-function spawnBot(parent=null, forceVx=0, forceVy=0) {
-    let entry = pickBotEntry();
-    let mass = parent ? parent.mass : BOT_START_MASS;
-    let isAggro = Math.random()>0.65;
+ 
+function spawnBot(parent=null,forceVx=0,forceVy=0) {
+    let entry=pickBotEntry();
+    let mass=parent?parent.mass:BOT_START_MASS;
+    let isAggro=Math.random()>0.65;
     bots.push({
-        x: parent?parent.x:Math.random()*WORLD_SIZE,
-        y: parent?parent.y:Math.random()*WORLD_SIZE,
+        x:parent?parent.x:Math.random()*WORLD_SIZE,
+        y:parent?parent.y:Math.random()*WORLD_SIZE,
         mass, r:Math.sqrt(mass)*CELL_SCALE,
         vx:forceVx, vy:forceVy,
         name:entry.name, full:entry.full, quote:entry.quote,
         aggro:isAggro, c:isAggro?'#e53935':`hsl(${Math.random()*360},50%,50%)`,
-        splitTime:0, wandX:0, wandY:0, wobble:0
+        splitTime:0, wandX:0, wandY:0
     });
 }
-
+ 
 function queueBotRespawn(){if(botRespawnQueue.length+bots.length<MAX_BOTS) botRespawnQueue.push(Date.now()+BOT_RESPAWN_DELAY);}
 function processBotRespawns(now){
     for(let i=botRespawnQueue.length-1;i>=0;i--){
         if(now>=botRespawnQueue[i]&&bots.length<MAX_BOTS){spawnBot();botRespawnQueue.splice(i,1);}
     }
 }
-
+ 
 function resize(){
     width=canvas.width=window.innerWidth; height=canvas.height=window.innerHeight;
-    mCanvas.width=mCanvas.height=(isMobile?100:130);
+    mCanvas.width=mCanvas.height=(isMobile?110:130);
 }
 window.addEventListener('resize',resize);
-
-function setupMobileLayout() {
-    if (!isMobile) return;
-    document.getElementById('touch-controls').style.display='block';
-}
-
+ 
 // ── Keyboard ──
 window.addEventListener('keydown',e=>{
     if(e.code==='Space'){if(Date.now()>sprintCooldownTimer){keys['Space']=true;if(!sprintBaselineMass)sprintBaselineMass=playerCells.reduce((s,c)=>s+c.mass,0);}}
     if(e.code==='ShiftLeft'||e.code==='ShiftRight') splitPlayer();
     if(['KeyW','KeyA','KeyS','KeyD','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code)) keys[e.code]=true;
-    e.preventDefault();
-},{passive:false});
+});
 window.addEventListener('keyup',e=>{keys[e.code]=false;});
 let mouseX=null,mouseY=null;
 canvas.addEventListener('mousemove',e=>{mouseX=e.clientX;mouseY=e.clientY;});
-
+ 
 // ── Touch ──
 if(isTouchDevice) document.getElementById('touch-controls').style.display='block';
 const joystickZone=document.getElementById('joystick-zone');
 const joystickKnob=document.getElementById('joystick-knob');
-const JOY_R=75;
+const JOY_R=80;
 let joyActive=false,joyTouchId=null,joyBaseX=0,joyBaseY=0,touchJoyX=0,touchJoyY=0;
-
+ 
 document.addEventListener('touchstart',e=>{
     for(let t of e.changedTouches){
         let el=document.elementFromPoint(t.clientX,t.clientY);
@@ -598,8 +391,8 @@ document.addEventListener('touchstart',e=>{
         if(el&&el.id==='btn-split'){splitPlayer();continue;}
         if(!joyActive&&t.clientX<width*0.5){
             joyTouchId=t.identifier;joyBaseX=t.clientX;joyBaseY=t.clientY;
-            joystickZone.style.left=(t.clientX-75)+'px';joystickZone.style.top=(t.clientY-75)+'px';
-            joystickKnob.style.left='43px';joystickKnob.style.top='43px';joyActive=true;
+            joystickZone.style.left=(t.clientX-80)+'px';joystickZone.style.top=(t.clientY-80)+'px';
+            joystickKnob.style.left='45px';joystickKnob.style.top='45px';joyActive=true;
         }
     }
 },{passive:true});
@@ -609,42 +402,38 @@ document.addEventListener('touchmove',e=>{
             let dx=t.clientX-joyBaseX,dy=t.clientY-joyBaseY,dist=Math.hypot(dx,dy);
             let c=Math.min(dist,JOY_R),angle=Math.atan2(dy,dx);
             touchJoyX=Math.cos(angle)*(c/JOY_R);touchJoyY=Math.sin(angle)*(c/JOY_R);
-            joystickKnob.style.left=(43+Math.cos(angle)*c)+'px';joystickKnob.style.top=(43+Math.sin(angle)*c)+'px';
+            joystickKnob.style.left=(45+Math.cos(angle)*c)+'px';joystickKnob.style.top=(45+Math.sin(angle)*c)+'px';
         }
     }
 },{passive:true});
 document.addEventListener('touchend',e=>{
     for(let t of e.changedTouches){
-        if(t.identifier===joyTouchId){joyActive=false;joyTouchId=null;touchJoyX=0;touchJoyY=0;joystickKnob.style.left='43px';joystickKnob.style.top='43px';}
+        if(t.identifier===joyTouchId){joyActive=false;joyTouchId=null;touchJoyX=0;touchJoyY=0;joystickKnob.style.left='45px';joystickKnob.style.top='45px';}
         let el=document.elementFromPoint(t.clientX,t.clientY);if(el&&el.id==='btn-sprint')keys['Space']=false;
     }
 },{passive:true});
-
+ 
 // ── Actions ──
 function splitPlayer(){
     sprintBaselineMass=null; let newC=[];
     playerCells.forEach(c=>{
         if(c.mass>=40&&playerCells.length<16){
             c.mass/=2;c.r=Math.sqrt(c.mass)*CELL_SCALE;
-            newC.push({x:c.x,y:c.y,mass:c.mass,r:c.r,vx:(joyX||1)*32,vy:(joyY||0)*32,splitTime:Date.now(),wobble:0});
+            newC.push({x:c.x,y:c.y,mass:c.mass,r:c.r,vx:(joyX||1)*30,vy:(joyY||0)*30,splitTime:Date.now()});
         }
     });
     playerCells.push(...newC);
 }
 function burstCell(cell,array){
-    let pieces=8, sm=cell.mass/pieces; if(sm<10)return;
+    let pieces=8,sm=cell.mass/pieces; if(sm<10)return;
     cell.mass=sm;cell.r=Math.sqrt(sm)*CELL_SCALE;cell.splitTime=Date.now();
-    for(let i=1;i<pieces;i++){
-        let a=(Math.PI*2/pieces)*i;
-        array.push({x:cell.x,y:cell.y,mass:sm,r:Math.sqrt(sm)*CELL_SCALE,vx:Math.cos(a)*28,vy:Math.sin(a)*28,splitTime:Date.now(),wobble:0});
-    }
+    for(let i=1;i<pieces;i++){let a=(Math.PI*2/pieces)*i;array.push({x:cell.x,y:cell.y,mass:sm,r:Math.sqrt(sm)*CELL_SCALE,vx:Math.cos(a)*25,vy:Math.sin(a)*25,splitTime:Date.now()});}
 }
 function playerDied(killer){
     gameActive=false;
-    playDeath();
     let fm=playerCells.reduce((s,c)=>s+c.mass,0);
     let evos=[hasNucleus?'🧬':'',hasMitochondria?'⚡':'',hasChloroplasts?'🌿':''].filter(Boolean).join(' ');
-    deathMsg.innerText=`Consumed by ${killer} • Mass: ${Math.floor(fm)}${evos?' • '+evos:''}`;
+    deathMsg.innerText=`Eaten by ${killer}! Mass: ${Math.floor(fm)}${evos?' | Evolved: '+evos:''}`;
     deathScreen.style.display='flex';
 }
 function playerWon(totalMass){
@@ -654,135 +443,69 @@ function playerWon(totalMass){
     document.getElementById('v-mass').innerText=Math.floor(totalMass).toLocaleString();
     document.getElementById('v-time').innerText=`${mins}:${secs.toString().padStart(2,'0')}`;
     document.getElementById('v-bots').innerText=botsEaten;
-    document.getElementById('v-combo').innerText=peakCombo;
     victoryScreen.style.display='flex';
-    playEvo(); setTimeout(()=>playEvo(),800);
 }
-
-// ── Combo System ──
-function triggerCombo(now) {
-    comboCount++;
-    comboTimer = now + 4000;
-    if (comboCount > peakCombo) peakCombo = comboCount;
-    playCombo(Math.min(comboCount, 5));
-    comboPillEl.style.display = 'block';
-    comboValEl.innerText = comboCount;
-}
-
-// ── Power-up logic ──
-function applyPowerup(pu) {
-    playPowerup();
-    let type = pu.type;
-    // Spawn burst particles
-    for(let i=0;i<20;i++) particles.push({x:pu.x,y:pu.y,vx:(Math.random()-.5)*8,vy:(Math.random()-.5)*8,life:1,c:type.color,r:5});
-    if(type.id==='masspill') {
-        let bonus = 300 * comboCount;
-        let biggestCell = playerCells.reduce((a,b)=>a.mass>b.mass?a:b);
-        biggestCell.mass += bonus; biggestCell.r = Math.sqrt(biggestCell.mass)*CELL_SCALE;
-    } else if(type.id==='nuke') {
-        // Destroy nearby bots
-        let killed = 0;
-        for(let i=bots.length-1;i>=0;i--){
-            let b=bots[i];
-            if(Math.hypot(b.x-avgX,b.y-avgY)<350){
-                for(let p=0;p<12;p++) particles.push({x:b.x,y:b.y,vx:(Math.random()-.5)*10,vy:(Math.random()-.5)*10,life:1,c:'#76ff03',r:6});
-                let biggestCell = playerCells.reduce((a,b2)=>a.mass>b2.mass?a:b2);
-                biggestCell.mass += b.mass*0.3; biggestCell.r = Math.sqrt(biggestCell.mass)*CELL_SCALE;
-                bots.splice(i,1); queueBotRespawn(); botsEaten++; killed++;
-            }
-        }
-        if(killed>0) triggerCombo(Date.now());
-    } else {
-        activeEffects[type.id] = Date.now() + type.duration;
-    }
-}
-
-// ── Evolution ──
-const MILESTONES = [
-    {mass:1000,key:'nucleus',      title:'🧬 NUCLEUS FORMED!',      desc:'You are now a Eukaryote — DNA protected!'},
-    {mass:2000,key:'mitochondria', title:'⚡ MITOCHONDRIA EVOLVED!', desc:'The powerhouse! Permanent speed boost activated.'},
-    {mass:3000,key:'chloroplasts', title:'🌿 CHLOROPLASTS EVOLVED!', desc:'Photosynthesis online! Food is worth 2× mass.'},
-];
-function checkEvolution(totalMass){
-    for(let m of MILESTONES){
-        if(totalMass>=m.mass){
-            if(m.key==='nucleus'&&!hasNucleus){hasNucleus=true;triggerEvo(m);}
-            if(m.key==='mitochondria'&&!hasMitochondria){hasMitochondria=true;triggerEvo(m);}
-            if(m.key==='chloroplasts'&&!hasChloroplasts){hasChloroplasts=true;triggerEvo(m);}
-        }
-    }
-    let parts=[];
-    if(hasNucleus) parts.push('🧬');
-    if(hasMitochondria) parts.push('⚡');
-    if(hasChloroplasts) parts.push('🌿');
-    evoStatusEl.style.display=parts.length?'block':'none';
-    evoStatusEl.innerText=parts.join(' ');
-}
-let evoBannerTO=null;
-function triggerEvo(m){
-    playEvo();
-    evoTitle.innerText=m.title; evoDesc.innerText=m.desc;
-    evoBanner.className='show';
-    if(evoBannerTO) clearTimeout(evoBannerTO);
-    evoBannerTO=setTimeout(()=>{evoBanner.className='hide';},3800);
-}
-
-let eatPopupTO=null;
-function showEatPopup(entry){
-    eatTitleEl.innerText=`You ate ${entry.full}`;
-    eatQuoteEl.innerText=entry.quote;
-    eatPopup.className='show';
-    if(eatPopupTO) clearTimeout(eatPopupTO);
-    eatPopupTO=setTimeout(()=>{eatPopup.className='hide';},2200);
-}
-
-// ── Bot AI (same as original with improvements) ──
+ 
+// ── Bot AI ──
 function getBotBehavior(b,nearestP,distP,nearestSB,distSB,elapsed,shieldOn){
     let moveX=0,moveY=0;
-    let chaseRange = elapsed<PHASE1_END?150:(elapsed<PHASE2_END?250:900);
-    let fleeRange = elapsed<PHASE1_END?150:(elapsed<PHASE2_END?250:700);
-
-    if(!shieldOn&&nearestP&&distP<chaseRange&&b.mass>nearestP.mass*1.15){
-        let a=Math.atan2(nearestP.y-b.y,nearestP.x-b.x);moveX=Math.cos(a);moveY=Math.sin(a);
-        if(b.aggro&&elapsed>=PHASE2_END&&b.mass>nearestP.mass*2.2&&distP<400&&distP>150&&Date.now()-b.splitTime>10000&&bots.length<MAX_BOTS){
-            b.mass/=2;b.r=Math.sqrt(b.mass)*CELL_SCALE;b.splitTime=Date.now();spawnBot(b,moveX*35,moveY*35);
+    if(elapsed<PHASE1_END){
+        if(!shieldOn&&nearestP&&distP<150&&b.mass>nearestP.mass*1.15){let a=Math.atan2(nearestP.y-b.y,nearestP.x-b.x);moveX=Math.cos(a);moveY=Math.sin(a);}
+        else if(!shieldOn&&nearestP&&distP<150&&nearestP.mass>b.mass*1.15){let a=Math.atan2(nearestP.y-b.y,nearestP.x-b.x);moveX=-Math.cos(a);moveY=-Math.sin(a);}
+        else {
+            // Head toward nearest black virus food zone OR nearest food
+            let target=null,bestD=9999;
+            for(let bv of blackViruses){let d=Math.hypot(b.x-bv.x,b.y-bv.y);if(d<300&&d<bestD){bestD=d;target={x:bv.x+(Math.random()-.5)*100,y:bv.y+(Math.random()-.5)*100};}}
+            if(!target){for(let f of food){let d=Math.hypot(b.x-f.x,b.y-f.y);if(d<bestD){bestD=d;target=f;}}}
+            if(target){let a=Math.atan2(target.y-b.y,target.x-b.x);moveX=Math.cos(a);moveY=Math.sin(a);}
+            else{if(Math.random()<0.02){b.wandX=Math.random()-.5;b.wandY=Math.random()-.5;}moveX=b.wandX;moveY=b.wandY;}
         }
-    } else if(!shieldOn&&nearestP&&distP<fleeRange&&nearestP.mass>b.mass*1.15){
-        let a=Math.atan2(nearestP.y-b.y,nearestP.x-b.x);moveX=-Math.cos(a);moveY=-Math.sin(a);
-    } else if(nearestSB&&distSB<(elapsed<PHASE1_END?600:700)){
-        let a=Math.atan2(nearestSB.y-b.y,nearestSB.x-b.x);moveX=Math.cos(a);moveY=Math.sin(a);
-        if(elapsed>=PHASE2_END&&b.mass>nearestSB.mass*2.5&&distSB<350&&Date.now()-b.splitTime>10000&&bots.length<MAX_BOTS){
-            b.mass/=2;b.r=Math.sqrt(b.mass)*CELL_SCALE;b.splitTime=Date.now();spawnBot(b,moveX*35,moveY*35);
+    } else if(elapsed<PHASE2_END){
+        if(!shieldOn&&nearestP&&distP<150&&b.mass>nearestP.mass*1.15){let a=Math.atan2(nearestP.y-b.y,nearestP.x-b.x);moveX=Math.cos(a);moveY=Math.sin(a);}
+        else if(!shieldOn&&nearestP&&distP<150&&nearestP.mass>b.mass*1.15){let a=Math.atan2(nearestP.y-b.y,nearestP.x-b.x);moveX=-Math.cos(a);moveY=-Math.sin(a);}
+        else if(nearestSB&&distSB<600){let a=Math.atan2(nearestSB.y-b.y,nearestSB.x-b.x);moveX=Math.cos(a);moveY=Math.sin(a);}
+        else {
+            let bestFood=null,bestFoodDist=400;
+            for(let bv of blackViruses){let d=Math.hypot(b.x-bv.x,b.y-bv.y);if(d<250&&d<bestFoodDist){bestFoodDist=d;bestFood={x:bv.x+(Math.random()-.5)*80,y:bv.y+(Math.random()-.5)*80};}}
+            if(!bestFood){for(let f of food){let d=Math.hypot(b.x-f.x,b.y-f.y);if(d<400&&d<bestFoodDist){bestFoodDist=d;bestFood=f;}}}
+            if(bestFood){let a=Math.atan2(bestFood.y-b.y,bestFood.x-b.x);moveX=Math.cos(a);moveY=Math.sin(a);}
+            else{if(Math.random()<0.02){b.wandX=Math.random()-.5;b.wandY=Math.random()-.5;}moveX=b.wandX;moveY=b.wandY;}
         }
     } else {
-        let bestFood=null,bestFoodDist=9999;
-        for(let bv of blackViruses){let d=Math.hypot(b.x-bv.x,b.y-bv.y);if(d<350&&d<bestFoodDist){bestFoodDist=d;bestFood={x:bv.x+(Math.random()-.5)*100,y:bv.y+(Math.random()-.5)*100};}}
-        if(!bestFood){for(let f of food){let d=Math.hypot(b.x-f.x,b.y-f.y);if(d<bestFoodDist){bestFoodDist=d;bestFood=f;}}}
-        if(bestFood){let a=Math.atan2(bestFood.y-b.y,bestFood.x-b.x);moveX=Math.cos(a);moveY=Math.sin(a);}
-        else{if(Math.random()<0.02){b.wandX=Math.random()-.5;b.wandY=Math.random()-.5;}moveX=b.wandX;moveY=b.wandY;}
+        if(!shieldOn&&nearestP&&distP<900&&b.mass>nearestP.mass*1.15){
+            let a=Math.atan2(nearestP.y-b.y,nearestP.x-b.x);moveX=Math.cos(a);moveY=Math.sin(a);
+            if(b.aggro&&b.mass>nearestP.mass*2.2&&distP<400&&distP>150&&Date.now()-b.splitTime>10000&&bots.length<MAX_BOTS){
+                b.mass/=2;b.r=Math.sqrt(b.mass)*CELL_SCALE;b.splitTime=Date.now();spawnBot(b,moveX*35,moveY*35);
+            }
+        } else if(!shieldOn&&nearestP&&distP<700&&nearestP.mass>b.mass*1.15){let a=Math.atan2(nearestP.y-b.y,nearestP.x-b.x);moveX=-Math.cos(a);moveY=-Math.sin(a);}
+        else if(nearestSB&&distSB<700){
+            let a=Math.atan2(nearestSB.y-b.y,nearestSB.x-b.x);moveX=Math.cos(a);moveY=Math.sin(a);
+            if(b.mass>nearestSB.mass*2.5&&distSB<350&&Date.now()-b.splitTime>10000&&bots.length<MAX_BOTS){
+                b.mass/=2;b.r=Math.sqrt(b.mass)*CELL_SCALE;b.splitTime=Date.now();spawnBot(b,moveX*35,moveY*35);
+            }
+        } else {
+            let bestFood=null,bestFoodDist=9999;
+            for(let bv of blackViruses){let d=Math.hypot(b.x-bv.x,b.y-bv.y);if(d<350&&d<bestFoodDist){bestFoodDist=d;bestFood={x:bv.x+(Math.random()-.5)*100,y:bv.y+(Math.random()-.5)*100};}}
+            if(!bestFood){for(let f of food){let d=Math.hypot(b.x-f.x,b.y-f.y);if(d<bestFoodDist){bestFoodDist=d;bestFood=f;}}}
+            if(bestFood){let a=Math.atan2(bestFood.y-b.y,bestFood.x-b.x);moveX=Math.cos(a);moveY=Math.sin(a);}
+            else{if(Math.random()<0.02){b.wandX=Math.random()-.5;b.wandY=Math.random()-.5;}moveX=b.wandX;moveY=b.wandY;}
+        }
     }
     return {moveX,moveY};
 }
-
+ 
 // ── Update ──
 function update(){
     if(!gameActive) return;
     const now=Date.now(), elapsed=now-gameStartTime;
-    wobbleTime+=0.05;
     if(metabolicBoost>0) metabolicBoost--;
-
-    // Combo decay
-    if(comboCount>1&&now>comboTimer){comboCount=1;comboPillEl.style.display='none';}
-
-    // Active effects decay
-    for(let k in activeEffects){if(now>activeEffects[k])delete activeEffects[k];}
-
+ 
     const shieldOn=now<shieldEndTime;
-    if(shieldOn){shieldPillEl.style.display='block';shieldValEl.innerText=Math.ceil((shieldEndTime-now)/1000);}
-    else shieldPillEl.style.display='none';
-
+    if(shieldOn){shieldBarEl.style.display='block';shieldValEl.innerText=Math.ceil((shieldEndTime-now)/1000);}
+    else shieldBarEl.style.display='none';
+ 
     processBotRespawns(now);
-
+ 
     // Direction
     let kX=0,kY=0;
     if(isTouchDevice&&(touchJoyX||touchJoyY)){kX=touchJoyX;kY=touchJoyY;}
@@ -799,263 +522,294 @@ function update(){
         }
     }
     joyX=kX;joyY=kY;
-
+ 
     let totalMass=playerCells.reduce((s,c)=>s+c.mass,0);
     if(totalMass>peakMass) peakMass=totalMass;
     isSprinting=keys['Space']&&now>sprintCooldownTimer;
     if(isSprinting&&sprintBaselineMass!==null&&totalMass<sprintBaselineMass*0.9){sprintCooldownTimer=now+30000;sprintBaselineMass=null;keys['Space']=false;isSprinting=false;}
-    if(now<sprintCooldownTimer){sprintPillEl.style.display='block';sprintPillEl.className='hud-pill exhausted';sprintPillEl.innerText=`EXHAUSTED ${Math.ceil((sprintCooldownTimer-now)/1000)}s`;}
-    else if(isSprinting&&sprintBaselineMass){sprintPillEl.style.display='block';sprintPillEl.className='hud-pill';sprintPillEl.innerText=`SPRINT ${(totalMass/sprintBaselineMass*100).toFixed(1)}%`;}
-    else sprintPillEl.style.display='none';
-
+    if(now<sprintCooldownTimer){sprintStatusEl.style.display='block';sprintStatusEl.className='score-box exhausted';sprintStatusEl.innerText=`EXHAUSTED: ${Math.ceil((sprintCooldownTimer-now)/1000)}s`;}
+    else if(isSprinting&&sprintBaselineMass){sprintStatusEl.style.display='block';sprintStatusEl.className='score-box';sprintStatusEl.innerText=`SPRINT: ${(totalMass/sprintBaselineMass*100).toFixed(1)}%`;}
+    else sprintStatusEl.style.display='none';
+ 
     checkEvolution(totalMass);
-    checkAchievements();
-
+ 
+    // Win check
     if(totalMass>=WIN_MASS){playerWon(totalMass);return;}
-
-    // Progress bar
-    progressFill.style.width = Math.min(100, (totalMass/WIN_MASS)*100) + '%';
-
+ 
     const foodVal=hasChloroplasts?3:1.5;
     const mitoSpeedBonus=hasMitochondria?0.6:0;
-    const speedEffectMult=activeEffects['speed']?2:1;
-
+ 
     // Particles
-    for(let i=particles.length-1;i>=0;i--){let p=particles[i];p.x+=p.vx;p.y+=p.vy;p.vx*=0.92;p.vy*=0.92;p.life-=0.025;if(p.life<=0)particles.splice(i,1);}
-
-    // Currents drift
-    for(let cur of currents){cur.drift+=cur.driftSpeed;cur.x+=Math.cos(cur.drift)*0.3;cur.y+=Math.sin(cur.drift)*0.3;cur.x=Math.max(cur.r,Math.min(WORLD_SIZE-cur.r,cur.x));cur.y=Math.max(cur.r,Math.min(WORLD_SIZE-cur.r,cur.y));}
-
-    // Black viruses spew
-    for(let bv of blackViruses){bv.pulseT+=0.06;bv.spewTimer++;if(bv.spewTimer>=4){bv.spewTimer=0;if(food.length<1000)spawnFood(bv.x,bv.y);}}
-
-    // Red viruses drift
-    for(let rv of redViruses){rv.pulseT+=0.05;rv.x+=rv.vx;rv.y+=rv.vy;if(rv.x<rv.r||rv.x>WORLD_SIZE-rv.r)rv.vx*=-1;if(rv.y<rv.r||rv.y>WORLD_SIZE-rv.r)rv.vy*=-1;rv.x=Math.max(rv.r,Math.min(WORLD_SIZE-rv.r,rv.x));rv.y=Math.max(rv.r,Math.min(WORLD_SIZE-rv.r,rv.y));}
-
-    // Power-up pulse
-    for(let pu of powerups){pu.pulseT+=0.06;pu.bobT+=0.04;}
-
-    buildGrid(food);
-
-    // ── Mass Magnet effect ──
-    if(activeEffects['magnet']){
-        for(let f of food){
-            let dx=avgX-f.x, dy=avgY-f.y, d=Math.hypot(dx,dy);
-            if(d<250&&d>0){f.x+=dx/d*3;f.y+=dy/d*3;}
+    for(let i=particles.length-1;i>=0;i--){let p=particles[i];p.x+=p.vx;p.y+=p.vy;p.life-=0.03;if(p.life<=0)particles.splice(i,1);}
+ 
+    // ── Black Viruses: spew food rapidly ──
+    for(let bv of blackViruses){
+        bv.pulseT+=0.06;
+        bv.spewTimer++;
+        if(bv.spewTimer>=4){ // every 4 frames = ~15 food/sec
+            bv.spewTimer=0;
+            if(food.length<900) spawnFood(bv.x,bv.y);
         }
     }
-
-    // Threat detection
-    let threatNear=false;
-    for(let b of bots){
-        if(!shieldOn&&b.mass>playerCells[0]?.mass*1.3&&Math.hypot(b.x-avgX,b.y-avgY)<300){threatNear=true;break;}
+ 
+    // ── Red Viruses: drift + bounce ──
+    for(let rv of redViruses){
+        rv.pulseT+=0.05;
+        rv.x+=rv.vx; rv.y+=rv.vy;
+        if(rv.x<rv.r||rv.x>WORLD_SIZE-rv.r) rv.vx*=-1;
+        if(rv.y<rv.r||rv.y>WORLD_SIZE-rv.r) rv.vy*=-1;
+        rv.x=Math.max(rv.r,Math.min(WORLD_SIZE-rv.r,rv.x));
+        rv.y=Math.max(rv.r,Math.min(WORLD_SIZE-rv.r,rv.y));
     }
-    if(threatNear){threatRing.classList.add('active');if(Math.random()<0.02)playAlert();}
-    else threatRing.classList.remove('active');
-
+ 
+    buildGrid(food);
+ 
     // ── Player Cells ──
     for(let i=0;i<playerCells.length;i++){
         let c1=playerCells[i];
-
-        // Wobble
-        c1.wobble = (c1.wobble||0)*0.85 + (Math.random()-.5)*0.01;
-
-        let speed=(4.8*(1.1-(c1.r/800))+mitoSpeedBonus)*((metabolicBoost>0)?1.5:1)*(isSprinting?1.8:1)*speedEffectMult;
-
-        // Current push
-        for(let cur of currents){
-            let d=Math.hypot(c1.x-cur.x,c1.y-cur.y);
-            if(d<cur.r){
-                let str=(1-d/cur.r)*0.6;
-                c1.vx+=cur.vx*str;c1.vy+=cur.vy*str;
-            }
-        }
-
+        let speed=(4.8*(1.1-(c1.r/800))+mitoSpeedBonus)*((metabolicBoost>0)?1.5:1)*(isSprinting?1.8:1);
         c1.x+=joyX*speed+c1.vx; c1.y+=joyY*speed+c1.vy;
-        c1.vx*=0.88; c1.vy*=0.88;
+        c1.vx*=0.9; c1.vy*=0.9;
         c1.x=Math.max(c1.r,Math.min(WORLD_SIZE-c1.r,c1.x));
         c1.y=Math.max(c1.r,Math.min(WORLD_SIZE-c1.r,c1.y));
-
+ 
         if(isSprinting&&c1.mass>20&&(joyX||joyY)){
             c1.mass-=0.05; c1.r=Math.sqrt(c1.mass)*CELL_SCALE;
-            if(Math.random()<0.3) particles.push({x:c1.x-joyX*c1.r,y:c1.y-joyY*c1.r,vx:-joyX*2+(Math.random()-.5)*2,vy:-joyY*2+(Math.random()-.5)*2,life:1,c:'#00e5ff',r:4});
+            if(Math.random()<0.3) particles.push({x:c1.x-joyX*c1.r,y:c1.y-joyY*c1.r,vx:-joyX*2+(Math.random()-.5)*2,vy:-joyY*2+(Math.random()-.5)*2,life:1});
         }
-
+ 
         // Merge
         for(let j=i+1;j<playerCells.length;j++){
             let c2=playerCells[j];
             if(Math.hypot(c1.x-c2.x,c1.y-c2.y)<(c1.r+c2.r)*0.9&&now-c1.splitTime>MERGE_COOLDOWN&&now-c2.splitTime>MERGE_COOLDOWN){
-                c1.mass+=c2.mass;c1.r=Math.sqrt(c1.mass)*CELL_SCALE;playerCells.splice(j,1);j--;
+                c1.mass+=c2.mass; c1.r=Math.sqrt(c1.mass)*CELL_SCALE; playerCells.splice(j,1); j--;
             }
         }
-
+ 
         // Eat food
         let nearby=getNearby(c1.x,c1.y,c1.r);
-        for(let f of nearby){
-            let fi=food.indexOf(f);if(fi===-1)continue;
-            if(Math.hypot(c1.x-f.x,c1.y-f.y)<c1.r){
-                c1.mass+=foodVal;c1.r=Math.sqrt(c1.mass)*CELL_SCALE;food.splice(fi,1);spawnFood();
-                if(now-lastFoodSoundTime>120){lastFoodSoundTime=now;playEatFood();}
-            }
-        }
-
+        for(let f of nearby){let fi=food.indexOf(f);if(fi===-1)continue;if(Math.hypot(c1.x-f.x,c1.y-f.y)<c1.r){c1.mass+=foodVal;c1.r=Math.sqrt(c1.mass)*CELL_SCALE;food.splice(fi,1);spawnFood();}}
+ 
         // Eat ATP
         for(let a=atp.length-1;a>=0;a--){if(Math.hypot(c1.x-atp[a].x,c1.y-atp[a].y)<c1.r){metabolicBoost=300;atp.splice(a,1);setTimeout(()=>atp.push({x:Math.random()*WORLD_SIZE,y:Math.random()*WORLD_SIZE,r:10}),5000);}}
-
-        // Eat power-ups
-        for(let pi=powerups.length-1;pi>=0;pi--){
-            let pu=powerups[pi];
-            if(Math.hypot(c1.x-pu.x,c1.y-pu.y)<c1.r+pu.r){
-                applyPowerup(pu);powerups.splice(pi,1);
-                setTimeout(spawnPowerup,15000);
-            }
-        }
-
+ 
         // Green virus bursts player
         for(let v=viruses.length-1;v>=0;v--){
             if(Math.hypot(c1.x-viruses[v].x,c1.y-viruses[v].y)<c1.r&&c1.mass>130){
-                burstCell(c1,playerCells);viruses.splice(v,1);
-                setTimeout(()=>viruses.push({x:Math.random()*WORLD_SIZE,y:Math.random()*WORLD_SIZE,r:60}),10000);break;
+                burstCell(c1,playerCells); viruses.splice(v,1);
+                setTimeout(()=>viruses.push({x:Math.random()*WORLD_SIZE,y:Math.random()*WORLD_SIZE,r:60}),10000); break;
             }
         }
-
-        // Black virus wall
+ 
+        // Black virus — hard wall block; eat at 20000+
         for(let bv of blackViruses){
-            let dist=Math.hypot(c1.x-bv.x,c1.y-bv.y),minDist=c1.r+bv.r;
+            let dist=Math.hypot(c1.x-bv.x,c1.y-bv.y);
+            let minDist=c1.r+bv.r;
             if(dist<minDist){
-                if(c1.mass>=20000){c1.mass+=500;c1.r=Math.sqrt(c1.mass)*CELL_SCALE;blackViruses.splice(blackViruses.indexOf(bv),1);break;}
+                if(c1.mass>=20000){
+                    c1.mass+=500; c1.r=Math.sqrt(c1.mass)*CELL_SCALE;
+                    blackViruses.splice(blackViruses.indexOf(bv),1);
+                    break;
+                }
+                // Push player out — hard wall
                 let ang=Math.atan2(c1.y-bv.y,c1.x-bv.x);
-                c1.x=bv.x+Math.cos(ang)*(minDist+1);c1.y=bv.y+Math.sin(ang)*(minDist+1);
+                c1.x=bv.x+Math.cos(ang)*(minDist+1);
+                c1.y=bv.y+Math.sin(ang)*(minDist+1);
+                // Kill velocity toward virus
                 let dot=c1.vx*Math.cos(ang)+c1.vy*Math.sin(ang);
                 if(dot<0){c1.vx-=dot*Math.cos(ang);c1.vy-=dot*Math.sin(ang);}
             }
         }
-
-        // Red virus drain
+ 
+        // Red virus — -20% mass on touch; eat at 10000+
         for(let ri=redViruses.length-1;ri>=0;ri--){
             let rv=redViruses[ri];
             if(Math.hypot(c1.x-rv.x,c1.y-rv.y)<c1.r+rv.r){
-                if(c1.mass>=10000){c1.mass+=200;c1.r=Math.sqrt(c1.mass)*CELL_SCALE;redViruses.splice(ri,1);spawnRedVirus();break;}
+                if(c1.mass>=10000){
+                    c1.mass+=200; c1.r=Math.sqrt(c1.mass)*CELL_SCALE;
+                    redViruses.splice(ri,1); spawnRedVirus(); break;
+                }
+                // Drain 20% — once per contact (use cooldown on cell)
                 if(!c1.redCooldown||now>c1.redCooldown){
-                    c1.mass=Math.max(10,c1.mass*0.8);c1.r=Math.sqrt(c1.mass)*CELL_SCALE;c1.redCooldown=now+1200;
-                    for(let p=0;p<10;p++) particles.push({x:c1.x,y:c1.y,vx:(Math.random()-.5)*8,vy:(Math.random()-.5)*8,life:1,c:'#ff5252',r:5});
+                    c1.mass=Math.max(10,c1.mass*0.8);
+                    c1.r=Math.sqrt(c1.mass)*CELL_SCALE;
+                    c1.redCooldown=now+1200;
+                    // Particle burst
+                    for(let p=0;p<8;p++) particles.push({x:c1.x,y:c1.y,vx:(Math.random()-.5)*6,vy:(Math.random()-.5)*6,life:1});
                 }
             }
         }
     }
-
-    // Green viruses burst bots
+ 
+    // ── Green Viruses burst bots ──
     for(let vi=viruses.length-1;vi>=0;vi--){
         let v=viruses[vi];
         for(let bi=bots.length-1;bi>=0;bi--){
-            let b=bots[bi];if(!b)continue;
+            let b=bots[bi]; if(!b)continue;
             if(b.mass>130&&Math.hypot(b.x-v.x,b.y-v.y)<b.r+v.r){
                 let pieces=6,sm=b.mass/pieces;
-                if(sm>=8){b.mass=sm;b.r=Math.sqrt(sm)*CELL_SCALE;b.splitTime=now;let canSpawn=Math.min(pieces-1,MAX_BOTS-bots.length);for(let i=1;i<=canSpawn;i++){let a=(Math.PI*2/pieces)*i;spawnBot(b,Math.cos(a)*18,Math.sin(a)*18);}}
-                viruses.splice(vi,1);setTimeout(()=>viruses.push({x:Math.random()*WORLD_SIZE,y:Math.random()*WORLD_SIZE,r:60}),10000);break;
+                if(sm>=8){b.mass=sm;b.r=Math.sqrt(sm)*CELL_SCALE;b.splitTime=now;
+                    let canSpawn=Math.min(pieces-1,MAX_BOTS-bots.length);
+                    for(let i=1;i<=canSpawn;i++){let a=(Math.PI*2/pieces)*i;spawnBot(b,Math.cos(a)*18,Math.sin(a)*18);}
+                }
+                viruses.splice(vi,1);
+                setTimeout(()=>viruses.push({x:Math.random()*WORLD_SIZE,y:Math.random()*WORLD_SIZE,r:60}),10000);
+                break;
             }
         }
     }
-
-    // Red viruses hit bots
-    for(let rv of redViruses){for(let bi=bots.length-1;bi>=0;bi--){let b=bots[bi];if(!b)continue;if(Math.hypot(b.x-rv.x,b.y-rv.y)<b.r+rv.r){if(b.mass>=10000){b.mass+=200;b.r=Math.sqrt(b.mass)*CELL_SCALE;let idx=redViruses.indexOf(rv);if(idx>-1){redViruses.splice(idx,1);spawnRedVirus();}break;}if(!b.redCooldown||now>b.redCooldown){b.mass=Math.max(10,b.mass*0.8);b.r=Math.sqrt(b.mass)*CELL_SCALE;b.redCooldown=now+1200;}}}}
-
-    // Bot AI
+ 
+    // ── Red viruses hit bots ──
+    for(let rv of redViruses){
+        for(let bi=bots.length-1;bi>=0;bi--){
+            let b=bots[bi]; if(!b)continue;
+            if(Math.hypot(b.x-rv.x,b.y-rv.y)<b.r+rv.r){
+                if(b.mass>=10000){
+                    // Bot eats red virus
+                    b.mass+=200; b.r=Math.sqrt(b.mass)*CELL_SCALE;
+                    let idx=redViruses.indexOf(rv); if(idx>-1){redViruses.splice(idx,1);spawnRedVirus();}
+                    break;
+                }
+                if(!b.redCooldown||now>b.redCooldown){
+                    b.mass=Math.max(10,b.mass*0.8); b.r=Math.sqrt(b.mass)*CELL_SCALE; b.redCooldown=now+1200;
+                }
+            }
+        }
+    }
+ 
+    // ── Bot AI ──
     for(let bi=bots.length-1;bi>=0;bi--){
-        let b=bots[bi];if(!b)continue;
-        b.wobble=(b.wobble||0)*0.85+(Math.random()-.5)*0.01;
+        let b=bots[bi]; if(!b)continue;
         let speed=4.0*(1.1-(b.r/800));
         let nearestP=null,distP=9999;
         for(let pc of playerCells){let d=Math.hypot(b.x-pc.x,b.y-pc.y);if(d<distP){distP=d;nearestP=pc;}}
         let nearestSB=null,distSB=9999;
-        for(let bi2=0;bi2<bots.length;bi2++){if(bi2===bi)continue;let b2=bots[bi2];if(!b2)continue;if(b.mass>b2.mass*1.2){let d=Math.hypot(b.x-b2.x,b.y-b2.y);if(d<distSB){distSB=d;nearestSB=b2;}}}
-
-        for(let bv of blackViruses){if(b.mass>=20000&&Math.hypot(b.x-bv.x,b.y-bv.y)<b.r+bv.r){b.mass+=500;b.r=Math.sqrt(b.mass)*CELL_SCALE;blackViruses.splice(blackViruses.indexOf(bv),1);break;}}
-
+        for(let bi2=0;bi2<bots.length;bi2++){
+            if(bi2===bi)continue; let b2=bots[bi2];if(!b2)continue;
+            if(b.mass>b2.mass*1.2){let d=Math.hypot(b.x-b2.x,b.y-b2.y);if(d<distSB){distSB=d;nearestSB=b2;}}
+        }
+ 
+        // Bots eat black virus at 20000+
+        for(let bv of blackViruses){
+            if(b.mass>=20000&&Math.hypot(b.x-bv.x,b.y-bv.y)<b.r+bv.r){
+                b.mass+=500;b.r=Math.sqrt(b.mass)*CELL_SCALE;
+                blackViruses.splice(blackViruses.indexOf(bv),1); break;
+            }
+        }
+ 
         let {moveX,moveY}=getBotBehavior(b,nearestP,distP,nearestSB,distSB,elapsed,shieldOn);
-
-        // Black virus avoidance
-        if(b.mass<20000){for(let bv of blackViruses){let dx=bv.x-b.x,dy=bv.y-b.y,dist=Math.hypot(dx,dy),avoidRadius=bv.r+b.r+60;if(dist<avoidRadius&&dist>0){let nx=dx/dist,ny=dy/dist,dot=moveX*nx+moveY*ny;if(dot>0){let str=1-(dist/avoidRadius),cross=moveX*ny-moveY*nx,perpX=cross>=0?-ny:ny,perpY=cross>=0?nx:-nx;moveX=moveX*(1-str)+perpX*str;moveY=moveY*(1-str)+perpY*str;let m=Math.hypot(moveX,moveY);if(m>0){moveX/=m;moveY/=m;}}}}}
-
-        // Current push on bots
-        for(let cur of currents){let d=Math.hypot(b.x-cur.x,b.y-cur.y);if(d<cur.r){let str=(1-d/cur.r)*0.4;b.vx+=cur.vx*str;b.vy+=cur.vy*str;}}
-
-        b.x+=moveX*speed+b.vx;b.y+=moveY*speed+b.vy;b.vx*=0.9;b.vy*=0.9;
-        b.x=Math.max(b.r,Math.min(WORLD_SIZE-b.r,b.x));b.y=Math.max(b.r,Math.min(WORLD_SIZE-b.r,b.y));
-
-        // Black virus hard wall for bots
-        for(let bv of blackViruses){let dist=Math.hypot(b.x-bv.x,b.y-bv.y),minDist=b.r+bv.r;if(dist<minDist&&b.mass<20000){let ang=Math.atan2(b.y-bv.y,b.x-bv.x);b.x=bv.x+Math.cos(ang)*(minDist+1);b.y=bv.y+Math.sin(ang)*(minDist+1);let dot=b.vx*Math.cos(ang)+b.vy*Math.sin(ang);if(dot<0){b.vx-=dot*Math.cos(ang);b.vy-=dot*Math.sin(ang);}}}
-
+ 
+        // ── Black virus avoidance: wide-arc steering ──
+        // If bot is heading toward a black virus it can't eat, steer around it
+        if(b.mass<20000){
+            for(let bv of blackViruses){
+                let dx=bv.x-b.x, dy=bv.y-b.y;
+                let dist=Math.hypot(dx,dy);
+                let avoidRadius=bv.r+b.r+60; // wide arc margin
+                if(dist<avoidRadius && dist>0){
+                    // Perpendicular deflection — push move vector sideways
+                    let nx=dx/dist, ny=dy/dist;
+                    let dot=moveX*nx+moveY*ny;
+                    if(dot>0){ // only deflect if actually heading toward it
+                        let strength=1-(dist/avoidRadius);
+                        // Pick the perpendicular direction that costs less (cross product sign)
+                        let cross=moveX*ny-moveY*nx;
+                        let perpX= cross>=0?-ny:ny;
+                        let perpY= cross>=0? nx:-nx;
+                        moveX=moveX*(1-strength)+perpX*strength;
+                        moveY=moveY*(1-strength)+perpY*strength;
+                        let m=Math.hypot(moveX,moveY);
+                        if(m>0){moveX/=m;moveY/=m;}
+                    }
+                }
+            }
+        }
+ 
+        b.x+=moveX*speed+b.vx; b.y+=moveY*speed+b.vy;
+        b.vx*=0.9; b.vy*=0.9;
+        b.x=Math.max(b.r,Math.min(WORLD_SIZE-b.r,b.x));
+        b.y=Math.max(b.r,Math.min(WORLD_SIZE-b.r,b.y));
+ 
+        // ── Black virus hard wall for bots ──
+        for(let bv of blackViruses){
+            let dist=Math.hypot(b.x-bv.x,b.y-bv.y);
+            let minDist=b.r+bv.r;
+            if(dist<minDist&&b.mass<20000){
+                let ang=Math.atan2(b.y-bv.y,b.x-bv.x);
+                b.x=bv.x+Math.cos(ang)*(minDist+1);
+                b.y=bv.y+Math.sin(ang)*(minDist+1);
+                let dot=b.vx*Math.cos(ang)+b.vy*Math.sin(ang);
+                if(dot<0){b.vx-=dot*Math.cos(ang);b.vy-=dot*Math.sin(ang);}
+            }
+        }
+ 
         // Bot eats food
         for(let f=food.length-1;f>=0;f--){if(Math.hypot(b.x-food[f].x,b.y-food[f].y)<b.r){b.mass+=1.5;b.r=Math.sqrt(b.mass)*CELL_SCALE;food.splice(f,1);spawnFood();}}
-
+ 
         // Bot eats smaller bot
-        for(let bi2=bots.length-1;bi2>=0;bi2--){
-            if(bi2===bi)continue;let b2=bots[bi2];if(!b2)continue;
+        for(let bi2=bots.length-1;bi2>=0;bi2–){
+            if(bi2===bi)continue; let b2=bots[bi2];if(!b2)continue;
             if(b.mass>b2.mass*1.15&&Math.hypot(b.x-b2.x,b.y-b2.y)<b.r*0.85){
-                b.mass+=b2.mass*0.5;b.r=Math.sqrt(b.mass)*CELL_SCALE;bots.splice(bi2,1);if(bi2<bi)bi--;queueBotRespawn();break;
+                b.mass+=b2.mass*0.5;b.r=Math.sqrt(b.mass)*CELL_SCALE;
+                bots.splice(bi2,1);if(bi2<bi)bi--;queueBotRespawn();break;
             }
         }
         if(!bots[bi])continue;
-
+ 
         // Bot eats player
         if(!shieldOn){
             for(let pi=playerCells.length-1;pi>=0;pi--){
                 let pc=playerCells[pi];
                 if(bots[bi]&&b.mass>pc.mass*1.15&&Math.hypot(b.x-pc.x,b.y-pc.y)<b.r*0.85){
                     b.mass+=pc.mass*0.5;b.r=Math.sqrt(b.mass)*CELL_SCALE;
-                    playerCells.splice(pi,1);if(playerCells.length===0){playerDied(b.name);return;}
+                    playerCells.splice(pi,1);
+                    if(playerCells.length===0){playerDied(b.name);return;}
                 }
             }
         }
         if(!bots[bi])continue;
-
+ 
         // Player eats bot
         for(let pi=0;pi<playerCells.length;pi++){
             let pc=playerCells[pi];
             if(pc.mass>b.mass*1.15&&Math.hypot(pc.x-b.x,pc.y-b.y)<pc.r*0.85){
                 pc.mass+=b.mass;pc.r=Math.sqrt(pc.mass)*CELL_SCALE;
-                playEatBot();
-                showEatPopup({full:bots[bi].full,quote:bots[bi].quote});
-                triggerCombo(now);
+                showEatPopup({full:bots[bi].full, quote:bots[bi].quote});
                 botsEaten++;
-                // Explosion particles
-                for(let p=0;p<15;p++) particles.push({x:b.x,y:b.y,vx:(Math.random()-.5)*10,vy:(Math.random()-.5)*10,life:1,c:b.c,r:6});
                 bots.splice(bi,1);queueBotRespawn();break;
             }
         }
     }
-
+ 
     totalMass=playerCells.reduce((s,c)=>s+c.mass,0);
     if(totalMass>peakMass) peakMass=totalMass;
-
-    // Smooth zoom
-    targetZoom = Math.max(0.18, 1-(totalMass/15000));
-    cameraZoom += (targetZoom - cameraZoom) * 0.04;
-
+    cameraZoom+=(Math.max(0.18,1-(totalMass/15000))-cameraZoom)*0.05;
     scoreEl.innerText=Math.floor(totalMass);
     mobileScoreEl.innerText=Math.floor(totalMass);
-
+ 
     // Leaderboard
     if(now-lastLBUpdate>500){
         lastLBUpdate=now;
         let list=bots.map(b=>({name:b.name,mass:b.mass}));
         list.push({name:'YOU',mass:totalMass,me:true});
         list.sort((a,b)=>b.mass-a.mass);
-        lbList.innerHTML=list.slice(0,6).map(e=>`<div style="display:flex;justify-content:space-between;gap:10px;font-size:12px;padding:2px 0;${e.me?'color:#00e5ff;font-weight:700':'color:rgba(255,255,255,0.65)'}"><span>${e.me?'👑 YOU':e.name}</span><span>${Math.floor(e.mass)}</span></div>`).join('')
-        +`<div style="color:rgba(255,255,255,0.25);margin-top:8px;font-size:10px;font-family:'Orbitron',monospace;letter-spacing:1px">BOTS ${bots.length}/${MAX_BOTS}</div>`;
+        let respawnInfo='';
+        if(botRespawnQueue.length>0){let nextIn=Math.ceil((Math.min(...botRespawnQueue)-now)/1000);respawnInfo=`<div style="color:#ff9800;margin-top:6px;font-size:11px">⏳ ${botRespawnQueue.length} respawning in ${Math.max(0,nextIn)}s</div>`;}
+        lbList.innerHTML=list.slice(0,5).map(e=>`<div style="display:flex;justify-content:space-between;gap:10px;${e.me?'color:#00e5ff':''}"><span>${e.me?'👑 YOU':e.name}</span><span>${Math.floor(e.mass)}</span></div>`).join('')
+            +`<div style="color:#78909c;margin-top:6px;font-size:11px">Bots: ${bots.length}/${MAX_BOTS}</div>`
+            +respawnInfo;
     }
 }
-
+ 
 // ── Organelle Drawers ──
 function drawNucleus(cx,cy,r){
     let nr=r*0.36;
     ctx.fillStyle='rgba(100,0,160,0.5)';ctx.beginPath();ctx.arc(cx,cy,nr,0,Math.PI*2);ctx.fill();
-    ctx.strokeStyle='rgba(200,100,255,0.75)';ctx.lineWidth=2;ctx.stroke();
+    ctx.strokeStyle='rgba(220,130,255,0.75)';ctx.lineWidth=2;ctx.stroke();
     ctx.fillStyle='rgba(220,130,255,0.6)';ctx.beginPath();ctx.arc(cx,cy,nr*0.35,0,Math.PI*2);ctx.fill();
 }
 function drawMitochondria(cx,cy,r){
-    let count=3,t=wobbleTime;
+    let count=3,t=Date.now()/3000;
     for(let i=0;i<count;i++){
         let angle=(Math.PI*2/count)*i+t,ox=cx+Math.cos(angle)*r*0.52,oy=cy+Math.sin(angle)*r*0.52;
         ctx.save();ctx.translate(ox,oy);ctx.rotate(angle+Math.PI/2);
@@ -1064,7 +818,7 @@ function drawMitochondria(cx,cy,r){
     }
 }
 function drawChloroplasts(cx,cy,r){
-    let count=4,t=wobbleTime;
+    let count=4,t=Date.now()/4000;
     for(let i=0;i<count;i++){
         let angle=(Math.PI*2/count)*i-t,ox=cx+Math.cos(angle)*r*0.5,oy=cy+Math.sin(angle)*r*0.5;
         ctx.save();ctx.translate(ox,oy);ctx.rotate(angle+Math.PI/2);
@@ -1072,332 +826,461 @@ function drawChloroplasts(cx,cy,r){
         ctx.strokeStyle='rgba(0,120,0,0.5)';ctx.lineWidth=1;ctx.stroke();ctx.restore();
     }
 }
-
-// ── Bot Cell Drawers (same stylized shapes) ──
+// ── Stylized Bot Cell Drawings ──
 function drawBot(b){
-    const t=wobbleTime;
-    const x=b.x, y=b.y, r=b.r*(1+(b.wobble||0)*0.05), c=b.c;
+    const t=Date.now()/1000;
+    const x=b.x, y=b.y, r=b.r, c=b.c;
     ctx.save();
-
+ 
     switch(b.name){
-        case 'Amy':{
-            let arms=5;ctx.fillStyle=c;ctx.beginPath();
-            for(let i=0;i<arms*2;i++){let ang=(Math.PI*2/(arms*2))*i+t*0.4;let rr=i%2===0?r*(0.9+0.18*Math.sin(t*1.1+i)):r*0.6;i===0?ctx.moveTo(x+Math.cos(ang)*rr,y+Math.sin(ang)*rr):ctx.lineTo(x+Math.cos(ang)*rr,y+Math.sin(ang)*rr);}
-            ctx.closePath();ctx.fill();ctx.fillStyle='rgba(255,255,255,0.4)';ctx.beginPath();ctx.arc(x+r*0.2,y-r*0.1,r*0.28,0,Math.PI*2);ctx.fill();break;
+        case 'Amy': { // Amoeba — irregular blob with pseudopods
+            let arms=5;
+            ctx.fillStyle=c;
+            ctx.beginPath();
+            for(let i=0;i<arms*2;i++){
+                let ang=(Math.PI*2/(arms*2))*i+t*0.4;
+                let rr=i%2===0?r*(0.9+0.18*Math.sin(t*1.1+i)):r*0.6;
+                i===0?ctx.moveTo(x+Math.cos(ang)*rr,y+Math.sin(ang)*rr):ctx.lineTo(x+Math.cos(ang)*rr,y+Math.sin(ang)*rr);
+            }
+            ctx.closePath(); ctx.fill();
+            // nucleus dot
+            ctx.fillStyle='rgba(255,255,255,0.4)'; ctx.beginPath(); ctx.arc(x+r*0.2,y-r*0.1,r*0.28,0,Math.PI*2); ctx.fill();
+            break;
         }
-        case 'Genie':{
-            ctx.translate(x,y);ctx.rotate(t*0.5);ctx.fillStyle=c;ctx.beginPath();ctx.ellipse(0,0,r*0.45,r,0,0,Math.PI*2);ctx.fill();
-            ctx.fillStyle='#e53935';ctx.beginPath();ctx.arc(-r*0.1,-r*0.55,r*0.15,0,Math.PI*2);ctx.fill();
-            ctx.strokeStyle='rgba(255,255,255,0.7)';ctx.lineWidth=Math.max(1.5,r*0.06);ctx.beginPath();ctx.moveTo(0,-r);
-            for(let i=0;i<=8;i++){let tt=i/8;ctx.lineTo(Math.sin(tt*Math.PI*3+t*4)*r*0.25,-(r+tt*r*0.9));}ctx.stroke();break;
+        case 'Genie': { // Euglena — elongated oval + single flagellum
+            ctx.translate(x,y); ctx.rotate(t*0.5);
+            ctx.fillStyle=c;
+            ctx.beginPath(); ctx.ellipse(0,0,r*0.45,r,0,0,Math.PI*2); ctx.fill();
+            // eyespot
+            ctx.fillStyle='#e53935'; ctx.beginPath(); ctx.arc(-r*0.1,-r*0.55,r*0.15,0,Math.PI*2); ctx.fill();
+            // flagellum — wavy line
+            ctx.strokeStyle='rgba(255,255,255,0.7)'; ctx.lineWidth=Math.max(1.5,r*0.06);
+            ctx.beginPath(); ctx.moveTo(0,-r);
+            for(let i=0;i<=8;i++){let tt=i/8;ctx.lineTo(Math.sin(tt*Math.PI*3+t*4)*r*0.25,-(r+tt*r*0.9));}
+            ctx.stroke();
+            break;
         }
-        case 'Para':{
-            ctx.translate(x,y);ctx.rotate(Math.sin(t*0.3)*0.3);ctx.fillStyle=c;ctx.beginPath();ctx.ellipse(0,0,r*0.55,r,0,0,Math.PI*2);ctx.fill();
-            ctx.strokeStyle='rgba(0,0,0,0.3)';ctx.lineWidth=r*0.08;ctx.beginPath();ctx.moveTo(-r*0.1,-r*0.4);ctx.quadraticCurveTo(r*0.35,0,-r*0.1,r*0.4);ctx.stroke();
-            ctx.strokeStyle='rgba(255,255,255,0.6)';ctx.lineWidth=Math.max(1,r*0.04);
-            let ciliaCount=14;for(let i=0;i<ciliaCount;i++){let ang=(Math.PI*2/ciliaCount)*i,wave=Math.sin(t*5+i)*0.25;let bx=Math.cos(ang)*r*0.55,by=Math.sin(ang)*r;ctx.beginPath();ctx.moveTo(bx,by);ctx.lineTo(bx*(1+0.35+wave),by*(1+0.35+wave));ctx.stroke();}break;
+        case 'Para': { // Paramecium — oval with cilia fringe
+            ctx.translate(x,y); ctx.rotate(Math.sin(t*0.3)*0.3);
+            ctx.fillStyle=c;
+            ctx.beginPath(); ctx.ellipse(0,0,r*0.55,r,0,0,Math.PI*2); ctx.fill();
+            // oral groove
+            ctx.strokeStyle='rgba(0,0,0,0.3)'; ctx.lineWidth=r*0.08;
+            ctx.beginPath(); ctx.moveTo(-r*0.1,-r*0.4); ctx.quadraticCurveTo(r*0.35,0,-r*0.1,r*0.4); ctx.stroke();
+            // cilia
+            ctx.strokeStyle='rgba(255,255,255,0.6)'; ctx.lineWidth=Math.max(1,r*0.04);
+            let ciliaCount=14;
+            for(let i=0;i<ciliaCount;i++){
+                let ang=(Math.PI*2/ciliaCount)*i, wave=Math.sin(t*5+i)*0.25;
+                let bx=Math.cos(ang)*r*0.55, by=Math.sin(ang)*r;
+                ctx.beginPath(); ctx.moveTo(bx,by);
+                ctx.lineTo(bx*(1+0.35+wave),by*(1+0.35+wave)); ctx.stroke();
+            }
+            break;
         }
-        case 'Volvie':{
-            ctx.fillStyle=c+'99';ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();ctx.strokeStyle=c;ctx.lineWidth=2;ctx.stroke();
-            let nc=8;for(let i=0;i<nc;i++){let ang=(Math.PI*2/nc)*i+t*0.2,ox=x+Math.cos(ang)*r*0.68,oy=y+Math.sin(ang)*r*0.68;ctx.fillStyle=c;ctx.beginPath();ctx.arc(ox,oy,r*0.18,0,Math.PI*2);ctx.fill();ctx.strokeStyle='rgba(255,255,255,0.5)';ctx.lineWidth=1;ctx.stroke();}
-            ctx.fillStyle=c+'66';ctx.beginPath();ctx.arc(x,y,r*0.35,0,Math.PI*2);ctx.fill();break;
+        case 'Volvie': { // Volvox — sphere of tiny sub-cells
+            ctx.fillStyle=c+'99';
+            ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill();
+            ctx.strokeStyle=c; ctx.lineWidth=2; ctx.stroke();
+            let nc=8;
+            for(let i=0;i<nc;i++){
+                let ang=(Math.PI*2/nc)*i+t*0.2, ox=x+Math.cos(ang)*r*0.68, oy=y+Math.sin(ang)*r*0.68;
+                ctx.fillStyle=c; ctx.beginPath(); ctx.arc(ox,oy,r*0.18,0,Math.PI*2); ctx.fill();
+                ctx.strokeStyle='rgba(255,255,255,0.5)'; ctx.lineWidth=1; ctx.stroke();
+            }
+            // inner daughter colony
+            ctx.fillStyle=c+'66'; ctx.beginPath(); ctx.arc(x,y,r*0.35,0,Math.PI*2); ctx.fill();
+            break;
         }
-        case 'Dino':{
-            ctx.fillStyle=c;ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();
-            ctx.strokeStyle='rgba(0,0,0,0.4)';ctx.lineWidth=r*0.12;ctx.beginPath();ctx.ellipse(x,y,r,r*0.15,0,0,Math.PI*2);ctx.stroke();
-            ctx.beginPath();ctx.moveTo(x,y-r);ctx.lineTo(x,y+r);ctx.stroke();
+        case 'Dino': { // Dinoflagellate — round with two perpendicular grooves + glow
+            ctx.fillStyle=c;
+            ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill();
+            // cingulum (horizontal groove)
+            ctx.strokeStyle='rgba(0,0,0,0.4)'; ctx.lineWidth=r*0.12;
+            ctx.beginPath(); ctx.ellipse(x,y,r,r*0.15,0,0,Math.PI*2); ctx.stroke();
+            // sulcus (vertical groove)
+            ctx.beginPath(); ctx.moveTo(x,y-r); ctx.lineTo(x,y+r); ctx.stroke();
+            // bioluminescent glow
             let glow=ctx.createRadialGradient(x,y,r*0.3,x,y,r*1.5);
-            glow.addColorStop(0,`rgba(0,220,180,${0.15+0.1*Math.sin(t*2)})`);glow.addColorStop(1,'rgba(0,0,0,0)');
-            ctx.fillStyle=glow;ctx.beginPath();ctx.arc(x,y,r*1.5,0,Math.PI*2);ctx.fill();break;
+            glow.addColorStop(0,`rgba(0,220,180,${0.15+0.1*Math.sin(t*2)})`);
+            glow.addColorStop(1,'rgba(0,0,0,0)');
+            ctx.fillStyle=glow; ctx.beginPath(); ctx.arc(x,y,r*1.5,0,Math.PI*2); ctx.fill();
+            break;
         }
-        case 'Stylo':{
-            ctx.translate(x,y);ctx.rotate(t*0.3);ctx.fillStyle=c;ctx.beginPath();
-            if(ctx.roundRect)ctx.roundRect(-r*0.5,-r,r,r*2,r*0.3);else{ctx.rect(-r*0.5,-r,r,r*2);}ctx.fill();
-            ctx.strokeStyle='rgba(255,255,255,0.75)';ctx.lineWidth=Math.max(1.5,r*0.06);
-            for(let i=0;i<6;i++){let lx=(i%2===0?-r*0.5:r*0.5),ly=-r*0.7+i*r*0.28,kick=Math.sin(t*6+i*1.2)*r*0.3;ctx.beginPath();ctx.moveTo(lx,ly);ctx.lineTo(lx+(i%2===0?-kick:kick),ly+r*0.4);ctx.stroke();}break;
+        case 'Stylo': { // Stylonychia — rectangular with cirri legs
+            ctx.translate(x,y); ctx.rotate(t*0.3);
+            ctx.fillStyle=c;
+            ctx.beginPath(); ctx.roundRect(-r*0.5,-r,r,r*2,r*0.3); ctx.fill();
+            // cirri (stiff leg-like cilia)
+            ctx.strokeStyle='rgba(255,255,255,0.75)'; ctx.lineWidth=Math.max(1.5,r*0.06);
+            for(let i=0;i<6;i++){
+                let lx=(i%2===0?-r*0.5:r*0.5), ly=-r*0.7+i*r*0.28;
+                let kick=Math.sin(t*6+i*1.2)*r*0.3;
+                ctx.beginPath(); ctx.moveTo(lx,ly); ctx.lineTo(lx+(i%2===0?-kick:kick),ly+r*0.4); ctx.stroke();
+            }
+            break;
         }
-        case 'Bleppy':{
-            ctx.translate(x,y);ctx.rotate(Math.sin(t*0.5)*0.2);ctx.fillStyle='#f48fb1';ctx.beginPath();ctx.ellipse(0,0,r*0.5,r,0,0,Math.PI*2);ctx.fill();
-            ctx.fillStyle='rgba(180,0,80,0.6)';for(let i=-1;i<=1;i++){ctx.beginPath();ctx.arc(0,i*r*0.38,r*0.2,0,Math.PI*2);ctx.fill();}
-            ctx.strokeStyle='rgba(255,200,220,0.7)';ctx.lineWidth=Math.max(1,r*0.04);
-            for(let i=0;i<12;i++){let ang=(Math.PI*2/12)*i,wave=Math.sin(t*5+i)*0.2;ctx.beginPath();ctx.moveTo(Math.cos(ang)*r*0.5,Math.sin(ang)*r);ctx.lineTo(Math.cos(ang)*r*(0.5+0.3+wave),Math.sin(ang)*r*(1+0.3+wave));ctx.stroke();}break;
+        case 'Bleppy': { // Blepharisma — pink elongated with visible macronucleus
+            ctx.translate(x,y); ctx.rotate(Math.sin(t*0.5)*0.2);
+            ctx.fillStyle='#f48fb1';
+            ctx.beginPath(); ctx.ellipse(0,0,r*0.5,r,0,0,Math.PI*2); ctx.fill();
+            // macronucleus chain (beaded)
+            ctx.fillStyle='rgba(180,0,80,0.6)';
+            for(let i=-1;i<=1;i++){ctx.beginPath();ctx.arc(0,i*r*0.38,r*0.2,0,Math.PI*2);ctx.fill();}
+            // cilia fringe
+            ctx.strokeStyle='rgba(255,200,220,0.7)'; ctx.lineWidth=Math.max(1,r*0.04);
+            for(let i=0;i<12;i++){let ang=(Math.PI*2/12)*i,wave=Math.sin(t*5+i)*0.2;ctx.beginPath();ctx.moveTo(Math.cos(ang)*r*0.5,Math.sin(ang)*r);ctx.lineTo(Math.cos(ang)*r*(0.5+0.3+wave),Math.sin(ang)*r*(1+0.3+wave));ctx.stroke();}
+            break;
         }
-        case 'Vorty':{
-            ctx.translate(x,y);let stalkLen=r*0.9;ctx.strokeStyle='rgba(255,255,255,0.6)';ctx.lineWidth=Math.max(1.5,r*0.07);ctx.beginPath();ctx.moveTo(0,0);
-            for(let i=0;i<=10;i++){let tt=i/10;ctx.lineTo(Math.sin(tt*Math.PI*4+t*3)*r*0.15,stalkLen*tt);}ctx.stroke();
-            ctx.fillStyle=c;ctx.beginPath();ctx.ellipse(0,-r*0.55,r*0.7,r*0.55,0,0,Math.PI*2);ctx.fill();
-            ctx.strokeStyle='rgba(255,255,255,0.7)';ctx.lineWidth=Math.max(1,r*0.05);
-            for(let i=0;i<10;i++){let ang=(Math.PI*2/10)*i+t*2;ctx.beginPath();ctx.moveTo(Math.cos(ang)*r*0.65,-r*0.1);ctx.lineTo(Math.cos(ang)*r*0.85+Math.cos(ang+0.5)*r*0.2,-r*0.1+Math.sin(ang+t)*r*0.22);ctx.stroke();}break;
+        case 'Oxi': { // Oxytricha — flattened oval, lots of cirri
+            ctx.translate(x,y);
+            ctx.fillStyle=c;
+            ctx.beginPath(); ctx.ellipse(0,0,r,r*0.6,0,0,Math.PI*2); ctx.fill();
+            ctx.strokeStyle='rgba(255,255,255,0.6)'; ctx.lineWidth=Math.max(1,r*0.05);
+            for(let i=0;i<10;i++){
+                let bx=-r+i*(r*0.22), phase=Math.sin(t*7+i)*r*0.25;
+                ctx.beginPath(); ctx.moveTo(bx,r*0.6); ctx.lineTo(bx+phase,r*1.1); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(bx,-r*0.6); ctx.lineTo(bx-phase,-r*1.1); ctx.stroke();
+            }
+            break;
         }
-        case 'Spiro':{ctx.translate(x,y);ctx.rotate(t*0.2);ctx.fillStyle=c;ctx.beginPath();ctx.ellipse(0,0,r*0.28,r,0,0,Math.PI*2);ctx.fill();ctx.strokeStyle='rgba(255,255,255,0.3)';ctx.lineWidth=1;for(let i=-3;i<=3;i++){ctx.beginPath();ctx.ellipse(0,i*r*0.28,r*0.28,r*0.06,0,0,Math.PI*2);ctx.stroke();}break;}
-        case 'Noctie':{
-            ctx.fillStyle=c+'cc';ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();
-            let ng=ctx.createRadialGradient(x,y,0,x,y,r);ng.addColorStop(0,`rgba(100,220,255,${0.3+0.2*Math.sin(t*1.5)})`);ng.addColorStop(1,'rgba(0,100,200,0)');
-            ctx.fillStyle=ng;ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();
-            ctx.strokeStyle='rgba(200,240,255,0.8)';ctx.lineWidth=Math.max(2,r*0.08);ctx.beginPath();ctx.moveTo(x,y);
-            let ta=t*0.8,tx=x+Math.cos(ta)*r*1.6,ty=y+Math.sin(ta)*r*1.6;ctx.quadraticCurveTo(x+Math.cos(ta+0.8)*r,y+Math.sin(ta+0.8)*r,tx,ty);ctx.stroke();break;
+        case 'Vorty': { // Vorticella — bell on a stalk
+            ctx.translate(x,y);
+            let stalkLen=r*0.9, coil=Math.sin(t*3)*0.4;
+            // stalk (coiled spring)
+            ctx.strokeStyle='rgba(255,255,255,0.6)'; ctx.lineWidth=Math.max(1.5,r*0.07);
+            ctx.beginPath(); ctx.moveTo(0,0);
+            for(let i=0;i<=10;i++){let tt=i/10;ctx.lineTo(Math.sin(tt*Math.PI*4+t*3)*r*0.15,stalkLen*tt);}
+            ctx.stroke();
+            // bell body
+            ctx.fillStyle=c;
+            ctx.beginPath(); ctx.ellipse(0,-r*0.55,r*0.7,r*0.55,0,0,Math.PI*2); ctx.fill();
+            // oral cilia crown
+            ctx.strokeStyle='rgba(255,255,255,0.7)'; ctx.lineWidth=Math.max(1,r*0.05);
+            for(let i=0;i<10;i++){let ang=(Math.PI*2/10)*i+t*2;ctx.beginPath();ctx.moveTo(Math.cos(ang)*r*0.65,-r*0.1);ctx.lineTo(Math.cos(ang)*r*0.85+Math.cos(ang+0.5)*r*0.2,-r*0.1+Math.sin(ang+t)*r*0.22);ctx.stroke();}
+            break;
         }
-        case 'Diddy':{
-            ctx.translate(x,y);ctx.fillStyle=c;ctx.beginPath();ctx.ellipse(0,0,r*0.75,r*0.75,0,0,Math.PI*2);ctx.fill();
-            ctx.beginPath();ctx.moveTo(0,-r*0.75);ctx.lineTo(-r*0.25,-r*1.2);ctx.lineTo(r*0.25,-r*1.2);ctx.closePath();ctx.fill();
-            ctx.strokeStyle='rgba(255,255,255,0.6)';ctx.lineWidth=Math.max(2,r*0.08);
-            for(let band of[-0.3,0.3]){ctx.beginPath();ctx.ellipse(0,r*band,r*0.75,r*0.12,0,0,Math.PI*2);ctx.stroke();}break;
+        case 'Spiro': { // Spirostomum — very long, narrow worm-like
+            ctx.translate(x,y); ctx.rotate(t*0.2);
+            ctx.fillStyle=c;
+            ctx.beginPath(); ctx.ellipse(0,0,r*0.28,r,0,0,Math.PI*2); ctx.fill();
+            // contraction ripple rings
+            ctx.strokeStyle='rgba(255,255,255,0.3)'; ctx.lineWidth=1;
+            for(let i=-3;i<=3;i++){ctx.beginPath();ctx.ellipse(0,i*r*0.28,r*0.28,r*0.06,0,0,Math.PI*2);ctx.stroke();}
+            break;
         }
-        case 'Chaos':{
-            ctx.fillStyle='#8d6e63';ctx.beginPath();ctx.arc(x,y,r*0.75,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#5d4037';ctx.lineWidth=3;ctx.stroke();
-            ctx.fillStyle=c;let np=7;
-            for(let i=0;i<np;i++){let ang=(Math.PI*2/np)*i+t*0.3,len=r*(0.6+0.3*Math.sin(t*1.5+i));let px=x+Math.cos(ang)*len,py=y+Math.sin(ang)*len;ctx.beginPath();ctx.arc(px,py,r*0.22,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.moveTo(x+Math.cos(ang)*r*0.4,y+Math.sin(ang)*r*0.4);ctx.lineTo(px,py);ctx.lineWidth=r*0.18;ctx.strokeStyle=c;ctx.stroke();}break;
+        case 'Noctie': { // Noctiluca — round with a big tentacle + glow
+            ctx.fillStyle=c+'cc';
+            ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill();
+            // bioluminescent shimmer
+            let ng=ctx.createRadialGradient(x,y,0,x,y,r);
+            ng.addColorStop(0,`rgba(100,220,255,${0.3+0.2*Math.sin(t*1.5)})`);
+            ng.addColorStop(1,'rgba(0,100,200,0)');
+            ctx.fillStyle=ng; ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill();
+            // single long tentacle
+            ctx.strokeStyle='rgba(200,240,255,0.8)'; ctx.lineWidth=Math.max(2,r*0.08);
+            ctx.beginPath(); ctx.moveTo(x,y);
+            let ta=t*0.8, tx=x+Math.cos(ta)*r*1.6, ty=y+Math.sin(ta)*r*1.6;
+            ctx.quadraticCurveTo(x+Math.cos(ta+0.8)*r,y+Math.sin(ta+0.8)*r,tx,ty); ctx.stroke();
+            break;
         }
-        case 'Tetra':{
-            ctx.translate(x,y);ctx.rotate(Math.sin(t*0.4)*0.2);ctx.fillStyle=c;ctx.beginPath();ctx.moveTo(0,-r);ctx.bezierCurveTo(r*0.8,-r*0.5,r*0.7,r*0.5,0,r);ctx.bezierCurveTo(-r*0.7,r*0.5,-r*0.8,-r*0.5,0,-r);ctx.fill();
-            ctx.strokeStyle='rgba(255,255,255,0.5)';ctx.lineWidth=r*0.1;ctx.beginPath();ctx.moveTo(-r*0.1,-r*0.6);ctx.quadraticCurveTo(r*0.4,0,0,r*0.6);ctx.stroke();break;
+        case 'Diddy': { // Didinium — barrel-shaped with two ciliary bands
+            ctx.translate(x,y);
+            ctx.fillStyle=c;
+            ctx.beginPath(); ctx.ellipse(0,0,r*0.75,r*0.75,0,0,Math.PI*2); ctx.fill();
+            // proboscis (cone top)
+            ctx.fillStyle=c;
+            ctx.beginPath(); ctx.moveTo(0,-r*0.75); ctx.lineTo(-r*0.25,-r*1.2); ctx.lineTo(r*0.25,-r*1.2); ctx.closePath(); ctx.fill();
+            // two ciliary rings
+            ctx.strokeStyle='rgba(255,255,255,0.6)'; ctx.lineWidth=Math.max(2,r*0.08);
+            for(let band of [-0.3,0.3]){ctx.beginPath();ctx.ellipse(0,r*band,r*0.75,r*0.12,0,0,Math.PI*2);ctx.stroke();}
+            break;
         }
-        case 'Gonium':{
-            let nc=16,cols=4,sub=r*0.28;
-            for(let i=0;i<nc;i++){let col=i%cols,row=Math.floor(i/cols);let ox=x+(col-1.5)*sub*2.1,oy=y+(row-1.5)*sub*2.1;ctx.fillStyle=c;ctx.beginPath();ctx.arc(ox,oy,sub,0,Math.PI*2);ctx.fill();ctx.strokeStyle='rgba(255,255,255,0.3)';ctx.lineWidth=1;ctx.stroke();}break;
+        case 'Chaos': { // Chaos/Difflugia — shell + many pseudopods
+            ctx.fillStyle='#8d6e63';
+            ctx.beginPath(); ctx.arc(x,y,r*0.75,0,Math.PI*2); ctx.fill();
+            ctx.strokeStyle='#5d4037'; ctx.lineWidth=3; ctx.stroke();
+            // many pseudopods oozing out
+            ctx.fillStyle=c;
+            let np=7;
+            for(let i=0;i<np;i++){
+                let ang=(Math.PI*2/np)*i+t*0.3, len=r*(0.6+0.3*Math.sin(t*1.5+i));
+                let px=x+Math.cos(ang)*len, py=y+Math.sin(ang)*len;
+                ctx.beginPath(); ctx.arc(px,py,r*0.22,0,Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.moveTo(x+Math.cos(ang)*r*0.4,y+Math.sin(ang)*r*0.4);
+                ctx.lineTo(px,py); ctx.lineWidth=r*0.18; ctx.strokeStyle=c; ctx.stroke();
+            }
+            break;
         }
-        case 'Stenty':{
-            ctx.translate(x,y);ctx.rotate(Math.PI/2+Math.sin(t*0.5)*0.2);ctx.fillStyle=c+'dd';ctx.beginPath();ctx.moveTo(-r,0);ctx.bezierCurveTo(-r,-r*0.6,r*0.2,-r*0.9,r*0.15,-r*1.0);ctx.lineTo(0,-r);ctx.bezierCurveTo(r*0.4,-r*0.8,r*0.6,-r*0.2,r*0.6,0);ctx.bezierCurveTo(r*0.6,r*0.3,r*0.3,r*0.5,0,r*0.6);ctx.bezierCurveTo(-r*0.4,r*0.5,-r,r*0.3,-r,0);ctx.fill();break;
+        case 'Tetra': { // Tetrahymena — pear-shaped with oral apparatus
+            ctx.translate(x,y); ctx.rotate(Math.sin(t*0.4)*0.2);
+            ctx.fillStyle=c;
+            ctx.beginPath(); ctx.moveTo(0,-r); ctx.bezierCurveTo(r*0.8,-r*0.5,r*0.7,r*0.5,0,r); ctx.bezierCurveTo(-r*0.7,r*0.5,-r*0.8,-r*0.5,0,-r); ctx.fill();
+            // oral groove
+            ctx.strokeStyle='rgba(255,255,255,0.5)'; ctx.lineWidth=r*0.1;
+            ctx.beginPath(); ctx.moveTo(-r*0.1,-r*0.6); ctx.quadraticCurveTo(r*0.4,0,0,r*0.6); ctx.stroke();
+            // cilia
+            ctx.strokeStyle='rgba(255,255,255,0.4)'; ctx.lineWidth=Math.max(1,r*0.04);
+            for(let i=0;i<10;i++){let ang=(Math.PI*2/10)*i,w=Math.sin(t*6+i)*0.2;ctx.beginPath();ctx.moveTo(Math.cos(ang)*r*0.7,Math.sin(ang)*r*0.9);ctx.lineTo(Math.cos(ang)*r*(0.7+0.3+w),Math.sin(ang)*r*(0.9+0.3+w));ctx.stroke();}
+            break;
         }
-        case 'Peri':{
-            ctx.translate(x,y);ctx.fillStyle=c;let plates=8;ctx.beginPath();
-            for(let i=0;i<plates;i++){let a=(Math.PI*2/plates)*i,ra=i%2===0?r:r*0.88;i===0?ctx.moveTo(Math.cos(a)*ra,Math.sin(a)*ra):ctx.lineTo(Math.cos(a)*ra,Math.sin(a)*ra);}
-            ctx.closePath();ctx.fill();ctx.strokeStyle='rgba(0,0,0,0.4)';ctx.lineWidth=r*0.08;for(let i=0;i<plates;i++){let a=(Math.PI*2/plates)*i;ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(Math.cos(a)*r,Math.sin(a)*r);ctx.stroke();}break;
+        case 'Gonium': { // Gonium — flat plate of 16 cells
+            let nc=16, cols=4;
+            let sub=r*0.28;
+            for(let i=0;i<nc;i++){
+                let col=i%cols, row=Math.floor(i/cols);
+                let ox=x+(col-1.5)*sub*2.1, oy=y+(row-1.5)*sub*2.1;
+                ctx.fillStyle=c; ctx.beginPath(); ctx.arc(ox,oy,sub,0,Math.PI*2); ctx.fill();
+                ctx.strokeStyle='rgba(255,255,255,0.3)'; ctx.lineWidth=1; ctx.stroke();
+                // flagella
+                ctx.strokeStyle='rgba(255,255,255,0.5)'; ctx.lineWidth=1;
+                ctx.beginPath(); ctx.moveTo(ox,oy-sub);
+                for(let j=0;j<=5;j++){let jt=j/5;ctx.lineTo(ox+Math.sin(jt*Math.PI*2+t*4+i)*sub*0.4,oy-sub-jt*sub*0.8);}
+                ctx.stroke();
+            }
+            break;
         }
-        case 'Gromia':{
-            ctx.fillStyle=c;ctx.beginPath();ctx.arc(x,y,r*0.8,0,Math.PI*2);ctx.fill();ctx.strokeStyle='rgba(255,255,255,0.5)';ctx.lineWidth=2;ctx.stroke();
-            ctx.strokeStyle='rgba(255,220,150,0.7)';ctx.lineWidth=Math.max(1,r*0.04);
-            for(let i=0;i<12;i++){let ang=(Math.PI*2/12)*i,len=r*(1.2+0.4*Math.sin(t*0.8+i));ctx.beginPath();ctx.moveTo(x+Math.cos(ang)*r*0.8,y+Math.sin(ang)*r*0.8);ctx.lineTo(x+Math.cos(ang)*len,y+Math.sin(ang)*len);ctx.stroke();}break;
+        case 'Stenty': { // Stentor — trumpet / wine-glass shape
+            ctx.translate(x,y); ctx.rotate(Math.PI/2+Math.sin(t*0.5)*0.2);
+            ctx.fillStyle=c+'dd';
+            ctx.beginPath(); ctx.moveTo(-r,0); ctx.bezierCurveTo(-r,-r*0.6,r*0.2,-r*0.9,r*0.15,-r*1.0);
+            ctx.lineTo(0,-r); ctx.bezierCurveTo(r*0.4,-r*0.8,r*0.6,-r*0.2,r*0.6,0);
+            ctx.bezierCurveTo(r*0.6,r*0.3,r*0.3,r*0.5,0,r*0.6); ctx.bezierCurveTo(-r*0.4,r*0.5,-r,r*0.3,-r,0);
+            ctx.fill();
+            // oral cilia crown at wide end (left)
+            ctx.strokeStyle='rgba(255,255,255,0.7)'; ctx.lineWidth=Math.max(1,r*0.05);
+            for(let i=0;i<10;i++){let a=-Math.PI/2+((i/10)*Math.PI),wv=Math.sin(t*5+i)*r*0.2;ctx.beginPath();ctx.moveTo(-r,Math.sin(a)*r*0.5);ctx.lineTo(-r-r*0.25+wv,Math.sin(a)*r*0.65);ctx.stroke();}
+            break;
         }
-        case 'Arcey':{
-            ctx.translate(x,y);ctx.fillStyle='#a1887f';ctx.beginPath();ctx.arc(0,0,r,Math.PI,0);ctx.fill();ctx.strokeStyle='#6d4c41';ctx.lineWidth=3;ctx.stroke();
-            ctx.fillStyle=c+'aa';ctx.beginPath();ctx.arc(0,-r*0.15,r*0.7,0,Math.PI*2);ctx.fill();
-            ctx.fillStyle='#3e2723';ctx.beginPath();ctx.arc(0,0,r*0.35,0,Math.PI);ctx.fill();break;
+        case 'Peri': { // Peridinium — armored plates, angular
+            ctx.translate(x,y);
+            // main body in plates
+            ctx.fillStyle=c;
+            let plates=8;
+            ctx.beginPath();
+            for(let i=0;i<plates;i++){
+                let a=(Math.PI*2/plates)*i, ra=i%2===0?r:r*0.88;
+                i===0?ctx.moveTo(Math.cos(a)*ra,Math.sin(a)*ra):ctx.lineTo(Math.cos(a)*ra,Math.sin(a)*ra);
+            }
+            ctx.closePath(); ctx.fill();
+            // plate suture lines
+            ctx.strokeStyle='rgba(0,0,0,0.4)'; ctx.lineWidth=r*0.08;
+            for(let i=0;i<plates;i++){let a=(Math.PI*2/plates)*i;ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(Math.cos(a)*r,Math.sin(a)*r);ctx.stroke();}
+            // two flagella in groove
+            ctx.strokeStyle='rgba(255,255,255,0.6)'; ctx.lineWidth=Math.max(1,r*0.05);
+            ctx.beginPath(); ctx.ellipse(0,0,r,r*0.12,0,0,Math.PI*2); ctx.stroke();
+            break;
         }
-        default:{
-            ctx.fillStyle=c;ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();
-            ctx.strokeStyle='rgba(255,255,255,0.2)';ctx.lineWidth=2;ctx.stroke();break;
+        case 'Gromia': { // Gromia — perfect sphere with pseudopod rays
+            ctx.fillStyle=c;
+            ctx.beginPath(); ctx.arc(x,y,r*0.8,0,Math.PI*2); ctx.fill();
+            ctx.strokeStyle='rgba(255,255,255,0.5)'; ctx.lineWidth=2; ctx.stroke();
+            // thin reticulopods radiating out
+            ctx.strokeStyle='rgba(255,220,150,0.7)'; ctx.lineWidth=Math.max(1,r*0.04);
+            for(let i=0;i<12;i++){
+                let ang=(Math.PI*2/12)*i, len=r*(1.2+0.4*Math.sin(t*0.8+i));
+                ctx.beginPath(); ctx.moveTo(x+Math.cos(ang)*r*0.8,y+Math.sin(ang)*r*0.8);
+                ctx.lineTo(x+Math.cos(ang)*len,y+Math.sin(ang)*len); ctx.stroke();
+            }
+            break;
+        }
+        case 'Arcey': { // Arcella — dome shell with pore opening
+            ctx.translate(x,y);
+            // dome shell (top half)
+            ctx.fillStyle='#a1887f';
+            ctx.beginPath(); ctx.arc(0,0,r,Math.PI,0); ctx.fill();
+            ctx.strokeStyle='#6d4c41'; ctx.lineWidth=3; ctx.stroke();
+            // cell body inside
+            ctx.fillStyle=c+'aa';
+            ctx.beginPath(); ctx.arc(0,-r*0.15,r*0.7,0,Math.PI*2); ctx.fill();
+            // pore opening at bottom
+            ctx.fillStyle='#3e2723';
+            ctx.beginPath(); ctx.arc(0,0,r*0.35,0,Math.PI); ctx.fill();
+            // pseudopods reaching out of pore
+            ctx.strokeStyle=c; ctx.lineWidth=Math.max(2,r*0.1);
+            for(let i=-1;i<=1;i++){let ang=Math.PI/2+i*0.5+Math.sin(t+i)*0.3;ctx.beginPath();ctx.moveTo(Math.cos(Math.PI/2+i*0.5)*r*0.3,Math.sin(Math.PI/2+i*0.5)*r*0.3);ctx.lineTo(Math.cos(ang)*r*0.9,Math.sin(ang)*r*0.8);ctx.stroke();}
+            break;
+        }
+        case 'Cilia': { // Generic cilia cell — oval covered in cilia
+            ctx.translate(x,y); ctx.rotate(Math.sin(t*0.4)*0.3);
+            ctx.fillStyle=c;
+            ctx.beginPath(); ctx.ellipse(0,0,r*0.65,r,0,0,Math.PI*2); ctx.fill();
+            // dense cilia all around
+            ctx.strokeStyle='rgba(255,255,255,0.55)'; ctx.lineWidth=Math.max(1,r*0.04);
+            let cn=20;
+            for(let i=0;i<cn;i++){
+                let ang=(Math.PI*2/cn)*i, wave=Math.sin(t*7+i*1.1)*0.3;
+                let bx=Math.cos(ang)*r*0.65, by=Math.sin(ang)*r;
+                ctx.beginPath(); ctx.moveTo(bx,by);
+                ctx.lineTo(bx*(1+0.4+wave),by*(1+0.4+wave)); ctx.stroke();
+            }
+            break;
+        }
+        default: { // Fallback plain circle
+            ctx.fillStyle=c; ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill();
+            break;
         }
     }
-
-    if(b.aggro){ctx.restore();ctx.save();ctx.strokeStyle='rgba(229,57,53,0.7)';ctx.lineWidth=Math.max(2,b.r*0.08);ctx.beginPath();ctx.arc(b.x,b.y,b.r+3,0,Math.PI*2);ctx.stroke();}
+ 
+    // Aggro red ring
+    if(b.aggro){
+        ctx.restore(); ctx.save();
+        ctx.strokeStyle='#b71c1c'; ctx.lineWidth=Math.max(2,b.r*0.1);
+        ctx.beginPath(); ctx.arc(b.x,b.y,b.r+2,0,Math.PI*2); ctx.stroke();
+    }
+    // Name label
     if(b.r>14){
-        ctx.restore();ctx.save();
-        ctx.fillStyle='rgba(255,255,255,0.9)';ctx.font=`700 ${Math.min(b.r*0.36,13)}px 'Exo 2', sans-serif`;
-        ctx.textAlign='center';ctx.textBaseline='middle';
-        ctx.shadowColor='rgba(0,0,0,0.8)';ctx.shadowBlur=3;
-        ctx.fillText(b.name,b.x,b.y+b.r*1.38);
+        ctx.restore(); ctx.save();
+        ctx.fillStyle='white'; ctx.font=`bold ${Math.min(b.r*0.38,14)}px Segoe UI`;
+        ctx.textAlign='center'; ctx.textBaseline='middle';
+        ctx.shadowColor='rgba(0,0,0,0.8)'; ctx.shadowBlur=3;
+        ctx.fillText(b.name,b.x,b.y+b.r*1.35);
     }
     ctx.restore();
 }
-
+ 
 function drawPlayerCell(c){
     const shieldOn=Date.now()<shieldEndTime;
     if(shieldOn){
         let pulse=0.5+0.5*Math.sin(Date.now()/150);
-        ctx.strokeStyle=`rgba(66,165,245,${pulse})`;ctx.lineWidth=10;ctx.beginPath();ctx.arc(c.x,c.y,c.r+14,0,Math.PI*2);ctx.stroke();
-        ctx.strokeStyle=`rgba(144,202,249,${pulse*0.3})`;ctx.lineWidth=20;ctx.beginPath();ctx.arc(c.x,c.y,c.r+24,0,Math.PI*2);ctx.stroke();
+        ctx.strokeStyle=`rgba(80,170,255,${pulse})`;ctx.lineWidth=10;ctx.beginPath();ctx.arc(c.x,c.y,c.r+12,0,Math.PI*2);ctx.stroke();
+        ctx.strokeStyle=`rgba(180,220,255,${pulse*0.4})`;ctx.lineWidth=18;ctx.beginPath();ctx.arc(c.x,c.y,c.r+20,0,Math.PI*2);ctx.stroke();
     }
-
-    // Speed effect aura
-    if(activeEffects['speed']){
-        let pulse=0.4+0.4*Math.sin(Date.now()/100);
-        ctx.strokeStyle=`rgba(255,152,0,${pulse})`;ctx.lineWidth=8;ctx.beginPath();ctx.arc(c.x,c.y,c.r+10,0,Math.PI*2);ctx.stroke();
-    }
-    if(activeEffects['magnet']){
-        let pulse=0.4+0.4*Math.sin(Date.now()/120);
-        ctx.strokeStyle=`rgba(255,215,0,${pulse})`;ctx.lineWidth=6;ctx.beginPath();ctx.arc(c.x,c.y,c.r+18,0,Math.PI*2);ctx.stroke();
-    }
-
-    // Cell body with wobble
-    let w = (c.wobble||0);
-    ctx.fillStyle='#0288d1';ctx.beginPath();
-    ctx.save();ctx.translate(c.x,c.y);ctx.scale(1+w,1-w);
-    ctx.arc(0,0,c.r,0,Math.PI*2);ctx.fill();
-    ctx.restore();
-    ctx.strokeStyle='rgba(224,247,250,0.8)';ctx.lineWidth=3;ctx.beginPath();ctx.arc(c.x,c.y,c.r,0,Math.PI*2);ctx.stroke();
-
+    ctx.fillStyle='#0288d1';ctx.beginPath();ctx.arc(c.x,c.y,c.r,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle='#fff';ctx.lineWidth=4;ctx.stroke();
     if(c.r>20){if(hasChloroplasts)drawChloroplasts(c.x,c.y,c.r);if(hasMitochondria)drawMitochondria(c.x,c.y,c.r);if(hasNucleus)drawNucleus(c.x,c.y,c.r);}
-
-    // Shine
-    ctx.fillStyle='rgba(255,255,255,0.15)';ctx.beginPath();ctx.ellipse(c.x-c.r*0.28,c.y-c.r*0.28,c.r*0.28,c.r*0.18,Math.PI*0.8,0,Math.PI*2);ctx.fill();
-
     if(c.r>15){
-        ctx.fillStyle='white';ctx.font=`700 ${Math.min(c.r*0.3,15)}px 'Orbitron',monospace`;
-        ctx.textAlign='center';ctx.textBaseline='middle';
-        ctx.shadowColor='rgba(0,0,0,0.5)';ctx.shadowBlur=4;
+        ctx.fillStyle='white';ctx.font=`bold ${Math.min(c.r*0.32,16)}px Segoe UI`;ctx.textAlign='center';ctx.textBaseline='middle';
         let labelY=(hasNucleus&&c.r>22)?c.y+c.r*0.62:c.y;ctx.fillText('YOU',c.x,labelY);
-        ctx.shadowBlur=0;
     }
 }
-
-function isVisible(x,y,r){
-    let sx=(x-avgX)*cameraZoom+width/2,sy=(y-avgY)*cameraZoom+height/2,sr=r*cameraZoom;
-    return sx+sr>0&&sx-sr<width&&sy+sr>0&&sy-sr<height;
-}
-
+ 
+function isVisible(x,y,r){let sx=(x-avgX)*cameraZoom+width/2,sy=(y-avgY)*cameraZoom+height/2,sr=r*cameraZoom;return sx+sr>0&&sx-sr<width&&sy+sr>0&&sy-sr<height;}
+ 
 // ── Draw ──
 function draw(){
     if(!gameActive) return;
-
-    // Background with subtle gradient
-    let bgGrad=ctx.createLinearGradient(0,0,width,height);
-    bgGrad.addColorStop(0,'#e8f4f8');bgGrad.addColorStop(1,'#d0e8f0');
-    ctx.fillStyle=bgGrad;ctx.fillRect(0,0,width,height);
-
+    ctx.fillStyle='#f0f4f7';ctx.fillRect(0,0,width,height);
+ 
     if(playerCells.length>0){
         avgX=playerCells.reduce((s,c)=>s+c.x,0)/playerCells.length;
         avgY=playerCells.reduce((s,c)=>s+c.y,0)/playerCells.length;
     }
-
+ 
     ctx.save();
     ctx.translate(width/2,height/2);ctx.scale(cameraZoom,cameraZoom);ctx.translate(-avgX,-avgY);
-
+ 
     // Grid
-    ctx.strokeStyle='rgba(178,214,228,0.5)';ctx.lineWidth=1;
+    ctx.strokeStyle='#d1d9e0';ctx.lineWidth=2;
     let vL=avgX-width/2/cameraZoom-200,vR=avgX+width/2/cameraZoom+200;
     let vT=avgY-height/2/cameraZoom-200,vB=avgY+height/2/cameraZoom+200;
     for(let x=Math.max(0,(vL/200|0)*200);x<=Math.min(WORLD_SIZE,vR);x+=200){ctx.beginPath();ctx.moveTo(x,Math.max(0,vT));ctx.lineTo(x,Math.min(WORLD_SIZE,vB));ctx.stroke();}
     for(let y=Math.max(0,(vT/200|0)*200);y<=Math.min(WORLD_SIZE,vB);y+=200){ctx.beginPath();ctx.moveTo(Math.max(0,vL),y);ctx.lineTo(Math.min(WORLD_SIZE,vR),y);ctx.stroke();}
-    ctx.strokeStyle='#37474f';ctx.lineWidth=16;ctx.strokeRect(0,0,WORLD_SIZE,WORLD_SIZE);
-
-    // ── Currents (visual) ──
-    for(let cur of currents){
-        if(!isVisible(cur.x,cur.y,cur.r))continue;
-        let alpha=0.08+0.04*Math.sin(wobbleTime+cur.drift);
-        let grd=ctx.createRadialGradient(cur.x,cur.y,0,cur.x,cur.y,cur.r);
-        grd.addColorStop(0,cur.color.replace('50%','50%').replace('hsl','hsla').replace(')',`,${alpha})`).replace('hsla','rgba')+'');
-        // simpler approach:
-        ctx.fillStyle=`rgba(0,180,220,${alpha})`;
-        ctx.beginPath();ctx.arc(cur.x,cur.y,cur.r,0,Math.PI*2);ctx.fill();
-        // Flow arrows
-        ctx.strokeStyle=`rgba(0,180,220,${alpha*3})`;ctx.lineWidth=2;
-        let arrowAngle=Math.atan2(cur.vy,cur.vx);
-        for(let i=0;i<4;i++){
-            let phase=(wobbleTime*0.5+i*Math.PI/2)%(Math.PI*2), t2=phase/(Math.PI*2);
-            let ax=cur.x+Math.cos(arrowAngle+Math.PI/2)*cur.r*(t2-0.5)*1.5,ay=cur.y+Math.sin(arrowAngle+Math.PI/2)*cur.r*(t2-0.5)*1.5;
-            ctx.save();ctx.translate(ax,ay);ctx.rotate(arrowAngle);
-            ctx.beginPath();ctx.moveTo(-8,4);ctx.lineTo(0,0);ctx.lineTo(-8,-4);ctx.stroke();ctx.restore();
-        }
-    }
-
+    ctx.strokeStyle='#37474f';ctx.lineWidth=20;ctx.strokeRect(0,0,WORLD_SIZE,WORLD_SIZE);
+ 
     // Food
     for(let f of food){
         if(!isVisible(f.x,f.y,f.r))continue;
-        ctx.fillStyle=hasChloroplasts?`hsl(${Math.floor(wobbleTime*30+f.x)%60+100},70%,55%)`:f.c;
+        ctx.fillStyle=hasChloroplasts?`hsl(${Math.random()*40+100},70%,55%)`:f.c;
         ctx.beginPath();ctx.arc(f.x,f.y,f.r,0,Math.PI*2);ctx.fill();
     }
-
-    // ATP (energy diamonds)
+ 
+    // ATP
     for(let a of atp){
         if(!isVisible(a.x,a.y,a.r*2))continue;
-        let glow=ctx.createRadialGradient(a.x,a.y,0,a.x,a.y,a.r*2);
-        glow.addColorStop(0,'rgba(255,234,0,0.4)');glow.addColorStop(1,'rgba(0,0,0,0)');
-        ctx.fillStyle=glow;ctx.beginPath();ctx.arc(a.x,a.y,a.r*2,0,Math.PI*2);ctx.fill();
-        ctx.fillStyle='#ffea00';ctx.beginPath();ctx.moveTo(a.x,a.y-a.r*1.3);ctx.lineTo(a.x+a.r,a.y);ctx.lineTo(a.x,a.y+a.r*1.3);ctx.lineTo(a.x-a.r,a.y);ctx.closePath();ctx.fill();
-        ctx.strokeStyle='rgba(255,255,150,0.6)';ctx.lineWidth=1.5;ctx.stroke();
+        ctx.fillStyle='#ffea00';ctx.beginPath();
+        ctx.moveTo(a.x,a.y-a.r);ctx.lineTo(a.x+a.r,a.y);ctx.lineTo(a.x,a.y+a.r);ctx.lineTo(a.x-a.r,a.y);
+        ctx.closePath();ctx.fill();
     }
-
-    // Power-ups
-    for(let pu of powerups){
-        if(!isVisible(pu.x,pu.y,pu.r*3))continue;
-        let bob=Math.sin(pu.bobT)*4;
-        let pulse=0.5+0.5*Math.sin(pu.pulseT);
-        // Outer glow
-        let grd=ctx.createRadialGradient(pu.x,pu.y+bob,0,pu.x,pu.y+bob,pu.r*3);
-        grd.addColorStop(0,pu.type.color+'66');grd.addColorStop(1,'rgba(0,0,0,0)');
-        ctx.fillStyle=grd;ctx.beginPath();ctx.arc(pu.x,pu.y+bob,pu.r*3,0,Math.PI*2);ctx.fill();
-        // Body
-        ctx.fillStyle=pu.type.color;ctx.beginPath();ctx.arc(pu.x,pu.y+bob,pu.r*(1+pulse*0.15),0,Math.PI*2);ctx.fill();
-        ctx.strokeStyle='white';ctx.lineWidth=2;ctx.stroke();
-        // Label
-        ctx.fillStyle='rgba(0,0,0,0.8)';ctx.font=`bold ${Math.min(pu.r*0.7,12)}px 'Exo 2', sans-serif`;
-        ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(pu.type.label.split(' ')[0],pu.x,pu.y+bob);
-        // Desc below
-        ctx.fillStyle='rgba(255,255,255,0.6)';ctx.font=`${pu.r*0.5}px 'Exo 2', sans-serif`;
-        ctx.fillText(pu.type.desc,pu.x,pu.y+bob+pu.r*1.8);
-    }
-
+ 
     // Green viruses
     for(let v of viruses){
         if(!isVisible(v.x,v.y,v.r))continue;
-        ctx.fillStyle='#66bb6a';ctx.beginPath();
-        for(let i=0;i<16;i++){let a=(Math.PI*2/16)*i,r=i%2===0?v.r:v.r*0.78;ctx.lineTo(v.x+Math.cos(a)*r,v.y+Math.sin(a)*r);}
-        ctx.fill();ctx.strokeStyle='#1b5e20';ctx.lineWidth=2.5;ctx.stroke();
-        ctx.fillStyle='rgba(0,0,0,0.5)';ctx.font='bold 9px Exo 2';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('>130',v.x,v.y);
+        ctx.fillStyle='#4caf50';ctx.beginPath();
+        for(let i=0;i<16;i++){let a=(Math.PI*2/16)*i,r=i%2===0?v.r:v.r*0.8;ctx.lineTo(v.x+Math.cos(a)*r,v.y+Math.sin(a)*r);}
+        ctx.fill();ctx.strokeStyle='#1b5e20';ctx.lineWidth=3;ctx.stroke();
     }
-
-    // Black viruses
+ 
+    // ── Black Viruses ──
     for(let bv of blackViruses){
         if(!isVisible(bv.x,bv.y,bv.r+20))continue;
         let pulse=0.5+0.5*Math.sin(bv.pulseT);
-        let grd=ctx.createRadialGradient(bv.x,bv.y,bv.r*0.3,bv.x,bv.y,bv.r*2.5);
-        grd.addColorStop(0,`rgba(80,0,180,${0.2+pulse*0.15})`);grd.addColorStop(1,'rgba(0,0,0,0)');
-        ctx.fillStyle=grd;ctx.beginPath();ctx.arc(bv.x,bv.y,bv.r*2.5,0,Math.PI*2);ctx.fill();
-        ctx.fillStyle='#080808';ctx.beginPath();
+        // Glow
+        let grd=ctx.createRadialGradient(bv.x,bv.y,bv.r*0.3,bv.x,bv.y,bv.r*2.2);
+        grd.addColorStop(0,`rgba(80,0,180,${0.25+pulse*0.2})`);
+        grd.addColorStop(1,'rgba(0,0,0,0)');
+        ctx.fillStyle=grd;ctx.beginPath();ctx.arc(bv.x,bv.y,bv.r*2.2,0,Math.PI*2);ctx.fill();
+        // Body spiky
+        ctx.fillStyle='#0a0a0a';ctx.beginPath();
         for(let i=0;i<20;i++){let a=(Math.PI*2/20)*i,r=i%2===0?bv.r:bv.r*0.78;ctx.lineTo(bv.x+Math.cos(a)*r,bv.y+Math.sin(a)*r);}
-        ctx.fill();ctx.strokeStyle=`rgba(140,0,255,${0.5+pulse*0.5})`;ctx.lineWidth=3+pulse*3;ctx.stroke();
-        ctx.strokeStyle=`rgba(200,100,255,${0.3+pulse*0.4})`;ctx.lineWidth=2;ctx.beginPath();ctx.arc(bv.x,bv.y,bv.r*0.55,0,Math.PI*2);ctx.stroke();
-        ctx.fillStyle='rgba(200,100,255,0.9)';ctx.font='bold 11px Orbitron';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('20K⬆',bv.x,bv.y);
+        ctx.fill();
+        ctx.strokeStyle=`rgba(140,0,255,${0.5+pulse*0.5})`;ctx.lineWidth=3+pulse*3;ctx.stroke();
+        // Inner glow ring
+        ctx.strokeStyle=`rgba(200,100,255,${0.3+pulse*0.4})`;ctx.lineWidth=2;
+        ctx.beginPath();ctx.arc(bv.x,bv.y,bv.r*0.55,0,Math.PI*2);ctx.stroke();
+        // Label
+        ctx.fillStyle='rgba(200,100,255,0.9)';ctx.font='bold 11px Segoe UI';ctx.textAlign='center';ctx.textBaseline='middle';
+        ctx.fillText('20K⬆',bv.x,bv.y);
     }
-
-    // Red viruses
+ 
+    // ── Red Viruses ──
     for(let rv of redViruses){
         if(!isVisible(rv.x,rv.y,rv.r+15))continue;
         let pulse=0.5+0.5*Math.sin(rv.pulseT);
+        // Glow
         let grd2=ctx.createRadialGradient(rv.x,rv.y,rv.r*0.3,rv.x,rv.y,rv.r*2);
-        grd2.addColorStop(0,`rgba(255,0,0,${0.15+pulse*0.15})`);grd2.addColorStop(1,'rgba(0,0,0,0)');
+        grd2.addColorStop(0,`rgba(255,0,0,${0.2+pulse*0.2})`);
+        grd2.addColorStop(1,'rgba(0,0,0,0)');
         ctx.fillStyle=grd2;ctx.beginPath();ctx.arc(rv.x,rv.y,rv.r*2,0,Math.PI*2);ctx.fill();
+        // Body spiky
         ctx.fillStyle='#c62828';ctx.beginPath();
         for(let i=0;i<14;i++){let a=(Math.PI*2/14)*i,r=i%2===0?rv.r:rv.r*0.75;ctx.lineTo(rv.x+Math.cos(a)*r,rv.y+Math.sin(a)*r);}
-        ctx.fill();ctx.strokeStyle=`rgba(255,80,80,${0.6+pulse*0.4})`;ctx.lineWidth=2+pulse*2;ctx.stroke();
-        ctx.fillStyle='white';ctx.font='bold 10px Orbitron';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('−20%',rv.x,rv.y-5);
-        ctx.font='8px Exo 2';ctx.fillStyle='rgba(255,200,200,0.8)';ctx.fillText('10K⬆',rv.x,rv.y+7);
+        ctx.fill();
+        ctx.strokeStyle=`rgba(255,80,80,${0.6+pulse*0.4})`;ctx.lineWidth=2+pulse*2;ctx.stroke();
+        // Label
+        ctx.fillStyle='white';ctx.font='bold 10px Segoe UI';ctx.textAlign='center';ctx.textBaseline='middle';
+        ctx.fillText('−20%',rv.x,rv.y-5);
+        ctx.font='9px Segoe UI';ctx.fillStyle='rgba(255,200,200,0.8)';
+        ctx.fillText('10K⬆',rv.x,rv.y+7);
     }
-
-    // Bots
-    for(let b of bots){if(!isVisible(b.x,b.y,b.r))continue;drawBot(b);}
-
+ 
+    // Bots — stylized cell-accurate shapes
+    for(let b of bots){
+        if(!isVisible(b.x,b.y,b.r))continue;
+        drawBot(b);
+    }
+ 
     // Particles
-    for(let p of particles){
-        ctx.fillStyle=p.c?p.c.replace(/[^,)]+\)$/,`${p.life})`):`rgba(0,229,255,${p.life})`;
-        ctx.beginPath();ctx.arc(p.x,p.y,p.r||4,0,Math.PI*2);ctx.fill();
-    }
-
+    for(let p of particles){ctx.fillStyle=`rgba(0,229,255,${p.life})`;ctx.beginPath();ctx.arc(p.x,p.y,4,0,Math.PI*2);ctx.fill();}
+ 
     // Player
     for(let c of playerCells) drawPlayerCell(c);
-
+ 
     ctx.restore();
-
+ 
     // Minimap
-    const ms=(isMobile?100:130)/WORLD_SIZE;
-    mCtx.clearRect(0,0,160,160);
-    // Currents on minimap
-    for(let cur of currents){mCtx.fillStyle='rgba(0,180,220,0.2)';mCtx.beginPath();mCtx.arc(cur.x*ms,cur.y*ms,cur.r*ms,0,Math.PI*2);mCtx.fill();}
-    for(let v of viruses){mCtx.fillStyle='#66bb6a';mCtx.fillRect(v.x*ms-1,v.y*ms-1,3,3);}
-    for(let bv of blackViruses){mCtx.fillStyle='#9c27b0';mCtx.fillRect(bv.x*ms-3,bv.y*ms-3,7,7);}
+    const ms=(isMobile?110:130)/WORLD_SIZE;
+    mCtx.clearRect(0,0,150,150);
+    for(let v of viruses){mCtx.fillStyle='#4caf50';mCtx.fillRect(v.x*ms-1,v.y*ms-1,3,3);}
+    for(let bv of blackViruses){mCtx.fillStyle='#9c27b0';mCtx.fillRect(bv.x*ms-3,bv.y*ms-3,6,6);}
     for(let rv of redViruses){mCtx.fillStyle='#e53935';mCtx.fillRect(rv.x*ms-2,rv.y*ms-2,5,5);}
-    for(let pu of powerups){mCtx.fillStyle=pu.type.color;mCtx.fillRect(pu.x*ms-2,pu.y*ms-2,5,5);}
     for(let b of bots){mCtx.fillStyle=b.aggro?'#e53935':'#ff9800';mCtx.fillRect(b.x*ms-1,b.y*ms-1,2,2);}
-    for(let c of playerCells){mCtx.fillStyle='#00e5ff';mCtx.fillRect(c.x*ms-2,c.y*ms-2,6,6);}
-
+    for(let c of playerCells){mCtx.fillStyle='#00e5ff';mCtx.fillRect(c.x*ms-2,c.y*ms-2,5,5);}
+ 
     update();
     requestAnimationFrame(draw);
 }
-
+ 
 function startGame(){
     document.getElementById('overlay').style.display='none';
     victoryScreen.style.display='none';
     deathScreen.style.display='none';
-    gameActive=true;init();draw();
-    // Trigger audio context
-    try{getAudio();}catch(e){}
+    gameActive=true; init(); draw();
 }
-
 document.getElementById('startBtn').onclick=startGame;
 document.getElementById('respawnBtn').onclick=startGame;
 document.getElementById('victoryBtn').onclick=startGame;
 </script>
-
 </body>
 </html>
+ 
